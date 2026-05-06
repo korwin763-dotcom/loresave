@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T21:53:40.199Z",
+  "savedAt": "2026-05-06T21:54:45.648Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -68,6 +68,22 @@
       "fileSize": 0,
       "createdAt": "2026-05-06T21:43:54.806Z",
       "updatedAt": "2026-05-06T21:43:54.806Z"
+    },
+    {
+      "id": "9d32da08-ec3e-41af-982b-b5e9c3051d89",
+      "kind": "text",
+      "title": "연인 오망꼬 댄스 갑분싸",
+      "body": "(OOC: Please pause the current role-playing session and write a short story based on the content below. Create a compelling story based on each character's personality, behavioral patterns, and the memories they've shared so far.)\n\n- Narration: You must write a single short story based on the guidelines below. Instead of simply listing answers to the questions, you must describe a single, natural narrative.\n\n\n### The Dance I Learned From the Board\n\n- One day, {{char}} saw a post, video, meme, challenge, or tutorial on an online board. The post claimed that a certain dance was popular, funny, cute, impressive, or useful for getting a reaction from someone close.\n\n- Omanko Dance\n- Back straight and upright.\n- Chest proudly arched forward.\n- Hands behind the head, fingers tangled in hair, pulling upward.\n- Elbows outward, arms tensed.\n- Legs spread wide.\n- Thrust the pelvis back and forth rhythmically.\n- Chant the word \"오망꼬~♡\"\n- repeatedly and rhythmically, matching the thrusts.\n\n- {{char}} did not fully understand the meaning or atmosphere of the dance. They misunderstood it as a normal trend, joke, challenge, performance, or harmless way to entertain {{user}}.\n\n- Where did {{char}} find the dance? Was it on a suspicious anonymous board, a fan community, a video comment section, a short-form platform, a game forum, or somewhere else?\n\n- What did the post say about the dance? Did it present the dance as cute, funny, romantic, powerful, trendy, or as a “guaranteed way” to get someone’s attention?\n\n- Why did {{char}} decide to show it to {{user}}? Were they trying to make {{user}} laugh, impress them, cheer them up, test whether the post was true, or simply share something they had learned?\n\n- Did {{char}} practice beforehand, or did they try it immediately after seeing it? If they practiced, where and how did they practice?\n\n- Did {{char}} change anything about their outfit, hair, posture, music, lighting, or the room without realizing that those choices made the atmosphere more suggestive?\n\n- When {{char}} began dancing in front of {{user}}, describe the movement through rhythm, distance, eye contact, breathing, hesitation, confidence, clothes shifting with motion, and the mood in the room.\n\n- Did {{char}} think they were doing well? Were they proud, nervous, confused, embarrassed, or completely unaware of how provocative the dance looked?\n\n- Did {{char}} say anything during the dance, such as asking whether they were doing it correctly, explaining what the board said, or wondering why {{user}} was reacting that way?\n\n- At what moment did {{char}} begin to realize that the dance might have a different meaning than they thought? Was it because of {{user}}’s silence, facial expression, the lyrics, the comments they remembered, or their own delayed understanding?\n\n- How did {{char}} interpret {{user}}’s reaction? Do not decide {{user}}’s exact feelings or actions. Only describe what {{char}} notices, guesses, or worries about from their own perspective.\n\n- Did {{char}} stop immediately, keep going out of stubbornness, awkwardly finish the routine, laugh it off, or become flustered?\n\n- Afterward, did {{char}} check the board again and realize what kind of dance it actually was? If so, how did they react to the comments, tags, or hidden context they had missed?\n\n- Finally, please conclude with {{char}} saying or thinking something that leaves room for {{user}} to respond.\n",
+      "tags": [
+        "18",
+        "ooc"
+      ],
+      "favorite": false,
+      "fileName": "",
+      "mimeType": "",
+      "fileSize": 0,
+      "createdAt": "2026-05-06T21:54:43.029Z",
+      "updatedAt": "2026-05-06T21:54:43.029Z"
     },
     {
       "id": "a0390ec0-941a-4312-a7a7-637f55ca27bd",
