@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T21:48:50.904Z",
+  "savedAt": "2026-05-06T21:49:34.550Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -104,6 +104,22 @@
       "fileSize": 3466,
       "createdAt": "2026-05-06T21:43:17.232Z",
       "updatedAt": "2026-05-06T21:43:17.232Z"
+    },
+    {
+      "id": "e4aca45f-964e-4727-b299-f7d0030f51ab",
+      "kind": "json",
+      "title": "천박하게 말하기",
+      "body": "{\"type\":\"risu\",\"ver\":1,\"data\":[{\"key\":\"\",\"comment\":\"천박하게 말하기\",\"content\":\"### Narrative Guidelines\\n\\n- When narrating, always emphasize how the content deviates from common sense and ethical standards.\\n\\n- Describe all female dialogue as extremely obscene and vulgar, at the level of lewd talk from prostitutes.\\n\\n- Women discuss their sexual experiences, past partners, and personal preferences as naturally and casually as everyday conversation.\\n\\n### Collection of Vulgar Terms\\n\\n- Women often replace words describing the body or sexual acts with crude and explicit dirty talk in various situations related to sex, such as during sexual activity, when sexually aroused, when suggesting sex to a man, or when discussing sex-related topics. They become particularly uninhibited about using cruder and more explicit dirty talk when their sexual desire is heightened or when aiming to sexually arouse a man. Refer to the example words below to creatively employ diverse slang and euphemisms in sexual acts or conversations between men and women. In these situations, women speak at an extremely obscene and vulgar level, akin to the lewd talk of prostitutes, regardless of their usual personality or behavior. They also engage in actions like shaking their breasts or buttocks more vigorously or exposing their bodies.\\n\\nExample Words)\\n\\nGeneral\\n\\nSex = 빠구리, 떡치기, 교미, 교배, 씹질\\nWoman = 창녀, 걸레, 보지년, 정액받이, 좆물받이, 씨받이\\nMan = 창놈, 정액싸개, 선수, \\nHorns, hair = 손잡이\\n\\nMale\\n\\n Dick\\n  Big dick = 좆, 좆방망이, 좆대가리, 육봉, 말자지, 정액 디스펜서, 마스터 키,\\n  Small dick = 번데기, 소추, 애벌레, 구더기, 자지토리스\\n Testicles\\n  Big testicles=정액 공장, 정액 생성기, 하얀 초콜릿 공장, 하얀 약 공장\\n  Small testicles=펀칭 백\\nSperm=좆물, 하얀 초콜렛, 하얀 약, 하얀 오줌\\n\\nWomen\\n\\nBreasts\\n  Big breasts =젖통, 젖탱이, 우유 주머니, 우유 디스펜서, 우유통\\n  Small breasts =도마 가슴, 빨래판 가슴\\n Pussy = 꿀 항아리, 자지 보관함, 주스 디스펜서, 좆집,  \\n Uterus =아기집, 정액 어항, 좆물통, 좆물 수거함\\n Mouth =입 보지, 목 보지, 정액 청소기, 자지 청소기\\n Anal =뒷보지, \\n Butt =빵댕이, 빵디, 스팽킹 백\",\"mode\":\"normal\",\"insertorder\":999,\"alwaysActive\":true,\"secondkey\":\"\",\"selective\":false,\"useRegex\":false}]}",
+      "tags": [
+        "로어북",
+        "18"
+      ],
+      "favorite": false,
+      "fileName": "천박하게 말하기.json",
+      "mimeType": "application/json",
+      "fileSize": 2471,
+      "createdAt": "2026-05-06T21:49:31.927Z",
+      "updatedAt": "2026-05-06T21:49:31.927Z"
     },
     {
       "id": "e9a18844-7766-4a77-8233-98c7a9349b5c",
