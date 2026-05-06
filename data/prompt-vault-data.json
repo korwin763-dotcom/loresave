@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T22:24:39.916Z",
+  "savedAt": "2026-05-06T22:26:48.585Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -35,6 +35,22 @@
       "fileSize": 0,
       "createdAt": "2026-05-06T21:56:48.157Z",
       "updatedAt": "2026-05-06T21:56:48.157Z"
+    },
+    {
+      "id": "09c2ceb7-ca9a-4226-98b9-bf11a1a57979",
+      "kind": "text",
+      "title": "새는 왜 나는가",
+      "body": "(OOC: Let's pause the RP for a moment to delve into the character's inner psyche.)\n\n### The Question To Your Life\n\n{{char}} is confronted with a question:\n\n\"Why do birds fly?\"\n\n- Draft {{char}}'s detailed thoughts in response to this question. Ground the response in the personality, character, relationships, educational level, and current psychological state of {{char}}, such a deficiency or desire.\n\n- Feel free to explore diverse themes suitable for {{char}}, such as literature, philosophy, fatalism, ontology, responsibility, morality, and free will. However, use proper metaphors and quotations to maintain the code of 'birds'.\n\n- Integrate {{char}}'s diverse knowledge and experiences across various fields into the answer, demonstrating {{char}}'s areas of interest.\n\n- The answer doesn't necessarily need to focus smoothly on a single topic. You may use stream-of-consciousness or make logical leaps. The important thing is to maintain the \"bird code,\" expand on the themes of birds and flight, and demonstrate a {{char}}-like thought process and a {{char}}-specific answer that naturally reveals {{char}}'s ego.\n\n- The Aesthetics of Metaphor: Be candid about {{char}}'s emotions and thoughts, but avoid explaining their past too directly. Any references to {{char}}'s personal history must be highly metaphorical.",
+      "tags": [
+        "ooc",
+        "철학"
+      ],
+      "favorite": false,
+      "fileName": "",
+      "mimeType": "",
+      "fileSize": 0,
+      "createdAt": "2026-05-06T22:26:45.042Z",
+      "updatedAt": "2026-05-06T22:26:45.042Z"
     },
     {
       "id": "1e957663-f22d-46b4-b524-bf1db9da944c",
