@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T21:42:48.169Z",
+  "savedAt": "2026-05-06T21:43:19.846Z",
   "items": [
     {
       "id": "67f5f80a-7363-4fc6-8c93-cb53a9e0cfcd",
@@ -37,6 +37,24 @@
       "fileSize": 8094,
       "createdAt": "2026-05-06T21:42:07.009Z",
       "updatedAt": "2026-05-06T21:42:07.009Z"
+    },
+    {
+      "id": "d61cb367-8818-4d8a-af6b-099f67c6b67a",
+      "kind": "json",
+      "title": "밤사이 자지 자라기",
+      "body": "{\"type\":\"risu\",\"ver\":1,\"data\":[{\"key\":\"\",\"comment\":\"Nocturnal Genital Metamorphosis \",\"content\":\"# Condition Overview: Nocturnal Genital Metamorphosis (NGM)\\n\\n**Classification:** Idiopathic morphological condition. No formal medical designation exists due to extreme rarity.\\n\\n**Prevalence:** Exceedingly rare. No reliable epidemiological data. Most medical professionals have never encountered a case. No public awareness to speak of.\\n\\n**Etiology:** Unknown. No identified genetic, viral, environmental, or hormonal trigger. No correlation with age, ethnicity, health status, or lifestyle has been established. All attempts at causal analysis have failed.\\n\\n**Onset:** Occurs during sleep, invariably overnight. The subject experiences no pain, sensation, or awareness during transformation. Upon waking, the subject discovers the morphological change already complete.\\n\\n**Prognosis:** Irreversible. No treatment, surgical or pharmaceutical, has achieved reversion.\\n\\n---\\n\\n## Morphology\\n\\nThe clitoris undergoes rapid overnight hypertrophy and structural reorganization into a penile organ. External appearance and basic anatomy (glans, shaft, foreskin) are consistent with a male penis, though scale varies (see below). The original vulvovaginal structures — labia, vaginal canal, uterus, ovaries — remain intact and functional. The result is a dual-genital configuration.\\n\\n**Size — Inverse Libido Correlation:**\\nA consistent inverse relationship has been observed between the subject's pre-onset libido and the size of the resulting organ.\\n\\n- High pre-onset libido → smaller organ\\n- Low pre-onset libido → larger organ\\n\\nThe mechanism behind this correlation is unknown.\\n\\n---\\n\\n## Functional Characteristics\\n\\n**Urinary:** Urination routes through the penile urethra. No reported dysfunction.\\n\\n**Erectile:** The organ is erectile and responsive to arousal, functioning comparably to a male penis.\\n\\n**Ejaculatory — Progressive Development:**\\nA small sperm-producing glandular structure forms at the base of the organ (sub-root). This is the most clinically significant feature of NGM due to its progressive nature.\\n\\n- **Initial stage:** The organ produces only pre-ejaculatory fluid (Cowper's fluid) upon stimulation. No spermatozoa present.\\n- **Progressive stage:** Repeated ejaculation triggers a feedback loop. The glandular tissue responds to sustained use by increasing seminal fluid production. Viable spermatozoa begin to appear.\\n- **Advanced stage:** With continued sexual use, ejaculate volume and sperm concentration approach levels sufficient for fertilization. Pregnancy via the subject's penile organ becomes theoretically — and practically — possible.\\n\\n**Critical note:** This progression is use-dependent. A subject who avoids sexual stimulation of the new organ will remain at the initial stage indefinitely. Escalation is driven entirely by repeated ejaculatory activity. The process appears to be one-directional; no regression has been observed even after prolonged abstinence following escalation.\\n\\n**Existing reproductive function:** The original female reproductive system remains fully operational. Menstruation, ovulation, and conception via vaginal intercourse are unaffected. A subject at advanced NGM stage is, in principle, capable of both inseminating and being inseminated.\\n\",\"mode\":\"normal\",\"insertorder\":100,\"alwaysActive\":true,\"secondkey\":\"\",\"selective\":false,\"useRegex\":false}]}",
+      "tags": [
+        "로어북",
+        "후타나리",
+        "18",
+        "후타"
+      ],
+      "favorite": false,
+      "fileName": "Nocturnal Genital Metamorphosis .json",
+      "mimeType": "application/json",
+      "fileSize": 3466,
+      "createdAt": "2026-05-06T21:43:17.232Z",
+      "updatedAt": "2026-05-06T21:43:17.232Z"
     }
   ]
 }
