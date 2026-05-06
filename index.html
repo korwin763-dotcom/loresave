@@ -1,827 +1,972 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>프롬프트 보관함</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS — Light & Dark
+   ═══════════════════════════════════════════════ */
 :root {
-  --bg: #f6f7f9;
-  --panel: #ffffff;
-  --panel-soft: #f0f4f3;
-  --line: #d9e1df;
-  --line-strong: #b7c5c2;
-  --text: #202322;
-  --muted: #66736f;
-  --faint: #8d9995;
-  --accent: #0f766e;
-  --accent-strong: #0b5d57;
-  --accent-soft: #d8efeb;
-  --warm: #b23a48;
-  --warm-soft: #f8e3e6;
-  --gold: #a66a00;
-  --shadow: 0 12px 32px rgba(24, 35, 33, 0.08);
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-med: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 999px;
+  --font-mono: 'JetBrains Mono', 'Consolas', 'SFMono-Regular', 'Menlo', monospace;
 }
 
-* {
-  box-sizing: border-box;
+[data-theme="light"] {
+  --bg-base: #F4F3F0;
+  --bg-raised: #FFFFFF;
+  --bg-raised-hover: #FAFAF8;
+  --bg-inset: #EDECEA;
+  --bg-overlay: rgba(0,0,0,0.45);
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --border-focus: rgba(180,120,60,0.35);
+  --text-primary: #1A1918;
+  --text-secondary: #6B6560;
+  --text-tertiary: #9C9590;
+  --text-inverse: #FFFFFF;
+  --accent: #C47A2A;
+  --accent-hover: #A86520;
+  --accent-soft: rgba(196,122,42,0.10);
+  --accent-text: #9A5F1A;
+  --danger: #C44040;
+  --danger-soft: rgba(196,64,64,0.08);
+  --danger-hover: #A53232;
+  --gold: #B8860B;
+  --gold-soft: rgba(184,134,11,0.12);
+  --gold-border: rgba(184,134,11,0.3);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
+  --shadow-glow: 0 0 0 1px var(--border), var(--shadow-sm);
+  --scrollbar-thumb: rgba(0,0,0,0.15);
+  --scrollbar-track: transparent;
+  color-scheme: light;
 }
 
-html,
-body {
-  min-height: 100%;
+[data-theme="dark"] {
+  --bg-base: #0E0F13;
+  --bg-raised: #18191F;
+  --bg-raised-hover: #1E2028;
+  --bg-inset: #121318;
+  --bg-overlay: rgba(0,0,0,0.65);
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --border-focus: rgba(220,170,90,0.4);
+  --text-primary: #E8E5E0;
+  --text-secondary: #8A8580;
+  --text-tertiary: #5C5752;
+  --text-inverse: #0E0F13;
+  --accent: #DCA85A;
+  --accent-hover: #E8BA72;
+  --accent-soft: rgba(220,168,90,0.10);
+  --accent-text: #DCA85A;
+  --danger: #E85454;
+  --danger-soft: rgba(232,84,84,0.10);
+  --danger-hover: #F06A6A;
+  --gold: #DCA85A;
+  --gold-soft: rgba(220,168,90,0.10);
+  --gold-border: rgba(220,168,90,0.3);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 0 1px var(--border), var(--shadow-sm);
+  --scrollbar-thumb: rgba(255,255,255,0.12);
+  --scrollbar-track: transparent;
+  color-scheme: dark;
 }
+
+/* ═══════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { min-height: 100%; }
 
 body {
   margin: 0;
-  background:
-    linear-gradient(135deg, rgba(15, 118, 110, 0.07), transparent 34%),
-    linear-gradient(315deg, rgba(178, 58, 72, 0.06), transparent 36%),
-    var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--transition-med), color var(--transition-med);
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+body::-webkit-scrollbar { width: 8px; }
+body::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+
+button, input, textarea, select { font: inherit; }
+button { border: 0; cursor: pointer; }
+
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
 }
 
-button {
-  border: 0;
-}
+::selection { background: var(--accent-soft); color: var(--text-primary); }
 
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.22);
-  outline-offset: 2px;
-}
-
+/* ═══════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════ */
 .app {
-  width: min(1420px, calc(100vw - 32px));
+  width: min(1480px, calc(100vw - 24px));
   margin: 0 auto;
-  padding: 24px 0 48px;
+  padding: 16px 0 48px;
 }
 
+/* ─── HEADER ─── */
 .topbar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 18px;
-  padding: 6px 2px 18px;
-  border-bottom: 1px solid var(--line);
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 10px 0 14px;
+  border-bottom: 1px solid var(--border);
 }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-inverse);
+  flex-shrink: 0;
+}
+
+.brand-icon svg { width: 18px; height: 18px; }
 
 .brand h1 {
   margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .brand p {
-  margin: 5px 0 0;
-  color: var(--muted);
-  font-size: 14px;
+  margin: 2px 0 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  display: none;
 }
 
 .top-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 5px;
 }
 
-.shell {
-  display: block;
-}
-
-.panel {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
-}
-
-.composer {
-  grid-area: composer;
-  position: sticky;
-  top: 18px;
-  overflow: hidden;
-}
-
-.composer > .panel-head {
-  cursor: pointer;
-  user-select: none;
-}
-
-.composer > .panel-head::-webkit-details-marker {
-  display: none;
-}
-
-.composer > .panel-head::marker {
-  content: "";
-}
-
-.composer > .panel-head::after {
-  content: "접기";
-  color: var(--accent-strong);
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.composer:not([open]) > .panel-head {
-  border-bottom: 0;
-}
-
-.composer:not([open]) > .panel-head::after {
-  content: "열기";
-}
-
-.panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 16px 12px;
-  border-bottom: 1px solid var(--line);
-}
-
-.panel-head h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.mini-stat {
-  color: var(--muted);
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.form {
-  display: grid;
-  gap: 13px;
-  padding: 16px;
-}
-
-.field {
-  display: grid;
-  gap: 6px;
-}
-
-.field label {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.field input,
-.field textarea,
-.search-row input,
-.search-row select {
-  width: 100%;
-  color: var(--text);
-  background: #fff;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-
-.field input::placeholder,
-.field textarea::placeholder,
-.search-row input::placeholder {
-  color: var(--faint);
-}
-
-.field textarea {
-  min-height: 390px;
-  max-height: 62vh;
-  resize: vertical;
-  font-family: "Consolas", "SFMono-Regular", "Menlo", monospace;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.form-actions,
-.search-actions,
-.card-actions,
-.dialog-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.btn {
-  min-height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  color: var(--text);
-  background: var(--panel-soft);
-  border: 1px solid var(--line);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 750;
-  white-space: nowrap;
-  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  border-color: var(--line-strong);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn.primary {
-  color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.btn.primary:hover {
-  background: var(--accent-strong);
-}
-
-.btn.danger {
-  color: var(--warm);
-  background: var(--warm-soft);
-  border-color: #efc4ca;
-}
-
-.btn.ghost {
-  background: transparent;
-}
-
-.btn.small {
-  min-height: 32px;
-  padding: 7px 10px;
-  font-size: 12px;
-}
-
-.btn.icon {
-  width: 36px;
-  padding: 0;
-  font-size: 17px;
-}
-
-.btn.icon.active {
-  color: #fff;
-  background: var(--gold);
-  border-color: var(--gold);
-}
-
-.btn[disabled] {
-  opacity: 0.62;
-  cursor: default;
-  transform: none;
-}
+/* ─── MAIN GRID ─── */
+.shell { display: block; }
 
 .main {
   display: grid;
-  grid-template-columns: 392px minmax(0, 1fr);
+  grid-template-columns: 370px minmax(0, 1fr);
   grid-template-areas:
     "composer sync"
     "composer search"
     "composer status"
     "composer list";
-  gap: 12px 18px;
+  gap: 10px 14px;
   align-items: start;
 }
 
-.search-panel {
-  grid-area: search;
+/* ─── PANELS ─── */
+.panel {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-glow);
+  transition: background var(--transition-med), border-color var(--transition-med), box-shadow var(--transition-med);
+}
+
+.panel:hover {
+  border-color: var(--border-strong);
+}
+
+/* ─── COMPOSER ─── */
+.composer {
+  grid-area: composer;
+  position: sticky;
+  top: 12px;
+  overflow: hidden;
+}
+
+.composer > .panel-head { cursor: pointer; user-select: none; }
+.composer > .panel-head::-webkit-details-marker { display: none; }
+.composer > .panel-head::marker { content: ""; }
+
+.composer > .panel-head::after {
+  content: "접기";
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  transition: background var(--transition-fast);
+}
+.composer > .panel-head:hover::after { background: var(--accent-soft); filter: brightness(1.2); }
+.composer:not([open]) > .panel-head { border-bottom: 0; }
+.composer:not([open]) > .panel-head::after { content: "열기"; }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.mini-stat {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+/* ─── FORM ─── */
+.form {
+  display: grid;
+  gap: 10px;
   padding: 14px;
 }
 
-.sync-panel {
-  grid-area: sync;
-  padding: 0;
+.field { display: grid; gap: 4px; }
+
+.field label {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field input,
+.field select,
+.field textarea,
+.search-row input,
+.search-row select {
+  width: 100%;
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 13px;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.field input:focus, .field select:focus, .field textarea:focus,
+.search-row input:focus, .search-row select:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-raised);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+
+.field input::placeholder, .field textarea::placeholder, .search-row input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.field textarea {
+  min-height: 340px;
+  max-height: 62vh;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+/* ─── BUTTONS ─── */
+.form-actions, .search-actions, .card-actions, .dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.btn {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  position: relative;
   overflow: hidden;
 }
+
+.btn svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.7; }
+
+.btn:hover {
+  background: var(--bg-raised-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.btn:hover svg { opacity: 1; }
+.btn:active { transform: translateY(0); box-shadow: none; }
+
+.btn.primary {
+  color: var(--text-inverse);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.btn.primary svg { opacity: 1; }
+.btn.primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--text-inverse);
+}
+
+.btn.danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: transparent;
+}
+.btn.danger:hover {
+  background: var(--danger);
+  color: var(--text-inverse);
+  border-color: var(--danger);
+}
+
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.ghost:hover { background: var(--bg-inset); border-color: var(--border); }
+
+.btn.small { min-height: 28px; padding: 4px 8px; font-size: 11px; }
+
+.btn.icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 15px;
+}
+.btn.icon.active {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--gold-border);
+}
+.btn.icon.active:hover {
+  background: var(--gold);
+  color: var(--text-inverse);
+}
+
+.btn[disabled] { opacity: 0.4; cursor: default; transform: none; box-shadow: none; }
+
+/* Ripple effect */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.btn:active::after { opacity: 1; }
+
+/* ─── THEME TOGGLE ─── */
+.theme-toggle {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+.theme-toggle:hover {
+  background: var(--bg-raised-hover);
+  color: var(--accent);
+  border-color: var(--border-strong);
+}
+.theme-toggle svg { width: 16px; height: 16px; transition: transform var(--transition-med); }
+.theme-toggle:hover svg { transform: rotate(15deg); }
+
+[data-theme="dark"] .icon-sun { display: block; }
+[data-theme="dark"] .icon-moon { display: none; }
+[data-theme="light"] .icon-sun { display: none; }
+[data-theme="light"] .icon-moon { display: block; }
+
+/* ─── SYNC PANEL ─── */
+.sync-panel { grid-area: sync; padding: 0; overflow: hidden; }
 
 .sync-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px;
+  padding: 10px 14px;
   cursor: pointer;
   user-select: none;
 }
-
-.sync-summary::-webkit-details-marker {
-  display: none;
-}
-
+.sync-summary::-webkit-details-marker { display: none; }
 .sync-summary::after {
   content: "펼치기";
-  color: var(--accent-strong);
-  font-size: 12px;
-  font-weight: 800;
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
   white-space: nowrap;
 }
-
-.sync-panel[open] .sync-summary {
-  border-bottom: 1px solid var(--line);
-}
-
-.sync-panel[open] .sync-summary::after {
-  content: "접기";
-}
+.sync-panel[open] .sync-summary { border-bottom: 1px solid var(--border); }
+.sync-panel[open] .sync-summary::after { content: "접기"; }
 
 .sync-title {
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
 }
+.sync-title svg { width: 14px; height: 14px; opacity: 0.6; }
 
 .sync-summary-status {
   min-width: 0;
   flex: 1;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-family: var(--font-mono);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: right;
 }
 
-.sync-body {
-  padding: 14px;
-}
+.sync-body { padding: 14px; }
 
 .sync-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
-
-.sync-grid .field {
-  gap: 5px;
-}
-
+.sync-grid .field { gap: 4px; }
 .sync-grid input {
   width: 100%;
-  color: var(--text);
-  background: #fff;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  padding: 9px 10px;
-  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 9px;
+  font-size: 12px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
+.sync-grid input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+.sync-grid .token-field { grid-column: span 2; }
 
-.sync-grid .token-field {
-  grid-column: span 2;
-}
-
-.sync-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
+.sync-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
 
 .sync-status {
   margin-top: 8px;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-family: var(--font-mono);
   overflow-wrap: anywhere;
 }
 
+/* ─── SEARCH ─── */
+.search-panel { grid-area: search; padding: 12px 14px; }
+
 .search-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 148px auto;
-  gap: 8px;
+  grid-template-columns: minmax(200px, 1fr) 130px auto;
+  gap: 6px;
   align-items: center;
 }
 
 .tag-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 12px;
+  gap: 5px;
+  margin-top: 10px;
 }
 
 .tag-suggestions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  min-height: 28px;
+  gap: 4px;
+  min-height: 24px;
 }
 
 .tag-suggestion {
-  min-height: 26px;
+  min-height: 22px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  color: var(--muted);
-  background: #fff;
-  border: 1px solid var(--line);
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  color: var(--text-tertiary);
+  background: transparent;
+  border: 1px solid var(--border);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
 }
-
 .tag-suggestion:hover {
-  color: var(--accent-strong);
+  color: var(--accent-text);
   background: var(--accent-soft);
-  border-color: #98d2ca;
+  border-color: var(--accent);
 }
+.tag-suggestion span { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 10px; }
 
-.tag-suggestion span {
-  color: var(--faint);
-}
-
-.tag-chip,
-.card-tag {
+.tag-chip, .card-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   max-width: 100%;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-tertiary);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
 }
 
-.tag-chip {
-  min-height: 30px;
-  padding: 5px 10px;
-}
-
-.tag-chip.active,
-.card-tag.active {
-  color: var(--accent-strong);
+.tag-chip { min-height: 26px; padding: 3px 9px; }
+.tag-chip.active, .card-tag.active {
+  color: var(--accent-text);
   background: var(--accent-soft);
-  border-color: #98d2ca;
+  border-color: var(--accent);
 }
+.tag-chip span { color: var(--text-tertiary); font-weight: 700; font-family: var(--font-mono); font-size: 10px; }
 
-.tag-chip span {
-  color: var(--faint);
-  font-weight: 750;
-}
-
+/* ─── PROMPT LIST ─── */
 .list-status {
   grid-area: status;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  color: var(--muted);
-  font-size: 13px;
+  gap: 10px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-family: var(--font-mono);
   padding: 0 2px;
 }
 
 .prompt-list {
   grid-area: list;
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
+/* ─── PROMPT CARD ─── */
 .prompt-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(24, 35, 33, 0.055);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
+  transition: all var(--transition-fast);
+  animation: cardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+.prompt-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.prompt-card.favorite { border-color: var(--gold-border); }
+.prompt-card.favorite:hover { border-color: var(--gold); }
 
-.prompt-card.favorite {
-  border-color: #d9a63e;
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .card-inner {
   display: grid;
-  gap: 10px;
-  padding: 14px;
+  gap: 8px;
+  padding: 12px;
 }
 
 .card-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
-.card-title {
-  min-width: 0;
-}
+.card-title { min-width: 0; }
 
 .card-title h3 {
   margin: 0;
-  font-size: 17px;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .card-meta {
-  margin-top: 4px;
-  color: var(--faint);
-  font-size: 12px;
+  margin-top: 2px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-family: var(--font-mono);
 }
 
 .type-badge {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  color: var(--accent-strong);
+  min-height: 18px;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  color: var(--accent-text);
   background: var(--accent-soft);
-  border: 1px solid #98d2ca;
-  font-size: 11px;
-  font-weight: 800;
+  border: 1px solid var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
 }
 
 .card-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
-
-.card-tag {
-  min-height: 26px;
-  padding: 4px 9px;
-}
+.card-tag { min-height: 22px; padding: 2px 8px; }
 
 .preview {
-  max-height: 104px;
+  max-height: 80px;
   overflow: hidden;
-  color: #2f3634;
-  background: #f8faf9;
-  border: 1px solid #e1e8e6;
-  border-radius: 8px;
-  padding: 10px 11px;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-family: "Consolas", "SFMono-Regular", "Menlo", monospace;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   line-height: 1.55;
+  mask-image: linear-gradient(to bottom, black 60%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent);
 }
 
 .card-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .char-count {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-family: var(--font-mono);
 }
 
+/* ─── EMPTY STATE ─── */
 .empty {
-  min-height: 220px;
+  min-height: 200px;
   display: grid;
   place-items: center;
   text-align: center;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.66);
-  border: 1px dashed var(--line-strong);
-  border-radius: 8px;
-  padding: 28px;
+  color: var(--text-tertiary);
+  background: var(--bg-raised);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  animation: fadeIn 0.4s ease;
+}
+.empty strong { display: block; margin-bottom: 4px; color: var(--text-secondary); }
+.empty-icon {
+  width: 48px; height: 48px; margin-bottom: 12px;
+  color: var(--text-tertiary); opacity: 0.4;
 }
 
-.empty strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--text);
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ─── TRASH ─── */
+.trash-list { display: grid; gap: 8px; }
+
+.trash-item {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
+.trash-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.trash-title { min-width: 0; font-weight: 700; font-size: 13px; word-break: break-word; }
+.trash-meta { color: var(--text-tertiary); font-size: 11px; font-family: var(--font-mono); }
+.trash-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* ─── DIALOGS ─── */
 dialog {
-  width: min(940px, calc(100vw - 28px));
+  width: min(900px, calc(100vw - 28px));
   max-height: calc(100vh - 36px);
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 24px 80px rgba(17, 28, 26, 0.24);
-  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+  background: var(--bg-raised);
+  animation: dialogIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-dialog::backdrop {
-  background: rgba(16, 24, 23, 0.38);
-}
-
-.dialog-head,
-.dialog-foot {
+.dialog-head, .dialog-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
-  background: #fff;
+  padding: 12px 16px;
+  background: var(--bg-raised);
 }
+.dialog-head { border-bottom: 1px solid var(--border); }
+.dialog-foot { border-top: 1px solid var(--border); }
 
-.dialog-head {
-  border-bottom: 1px solid var(--line);
+.dialog-title { min-width: 0; }
+.dialog-title h2 { margin: 0; font-size: 16px; line-height: 1.35; overflow-wrap: anywhere; }
+.dialog-title p { margin: 3px 0 0; color: var(--text-tertiary); font-size: 12px; }
+
+.dialog-body { padding: 14px 16px; background: var(--bg-inset); }
+
+.dialog-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+
+/* Replace panel */
+.replace-panel {
+  margin-bottom: 10px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
-
-.dialog-foot {
-  border-top: 1px solid var(--line);
-}
-
-.dialog-title {
-  min-width: 0;
-}
-
-.dialog-title h2 {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-}
-
-.dialog-title p {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.dialog-body {
-  padding: 16px;
-  background: #fbfcfc;
-}
-
-.dialog-tags {
+.replace-summary {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
 }
+.replace-summary::-webkit-details-marker { display: none; }
+.replace-summary::after {
+  content: "열기";
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  white-space: nowrap;
+}
+.replace-panel[open] .replace-summary { border-bottom: 1px solid var(--border); }
+.replace-panel[open] .replace-summary::after { content: "접기"; }
+
+.replace-title { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.replace-status {
+  min-width: 0; flex: 1;
+  color: var(--text-tertiary); font-size: 11px; font-family: var(--font-mono);
+  overflow: hidden; text-align: right; text-overflow: ellipsis; white-space: nowrap;
+}
+.replace-body { display: grid; gap: 8px; padding: 12px; }
+.replace-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.replace-actions { display: flex; flex-wrap: wrap; gap: 5px; }
 
 .file-summary {
   display: grid;
-  gap: 4px;
-  padding: 12px;
-  color: var(--muted);
-  background: #f8faf9;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 3px;
+  padding: 10px;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
 }
-
-.file-summary strong {
-  color: var(--text);
-  overflow-wrap: anywhere;
-}
+.file-summary strong { color: var(--text-primary); overflow-wrap: anywhere; }
 
 .full-body {
   max-height: calc(100vh - 240px);
   margin: 0;
   overflow: auto;
-  padding: 14px;
-  color: #202322;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  padding: 12px;
+  color: var(--text-primary);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-family: "Consolas", "SFMono-Regular", "Menlo", monospace;
-  font-size: 13px;
-  line-height: 1.62;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
 }
+.full-body::-webkit-scrollbar { width: 6px; }
+.full-body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 
+/* ─── TOAST ─── */
 .toast {
   position: fixed;
-  right: 18px;
-  bottom: 18px;
-  max-width: min(420px, calc(100vw - 36px));
-  padding: 11px 13px;
-  color: #fff;
-  background: #202322;
-  border-radius: 8px;
-  box-shadow: 0 12px 34px rgba(17, 28, 26, 0.22);
+  right: 16px;
+  bottom: 16px;
+  max-width: min(380px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  color: var(--text-inverse);
+  background: var(--text-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   font-size: 13px;
-  transform: translateY(18px);
+  font-weight: 500;
+  transform: translateY(16px) scale(0.95);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 20;
 }
-
 .toast.show {
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   opacity: 1;
 }
 
-.hidden {
-  display: none !important;
-}
+.hidden { display: none !important; }
 
+/* ─── RESPONSIVE ─── */
 @media (max-width: 980px) {
   .main {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "sync"
-      "search"
-      "composer"
-      "status"
-      "list";
+    grid-template-areas: "sync" "search" "composer" "status" "list";
   }
-
-  .composer {
-    position: static;
-  }
-
-  .field textarea {
-    min-height: 300px;
-    max-height: 56vh;
-  }
+  .composer { position: static; }
+  .field textarea { min-height: 260px; max-height: 56vh; }
 }
 
 @media (max-width: 680px) {
-  .app {
-    width: min(100vw - 20px, 1420px);
-    padding-top: 14px;
-  }
-
-  .topbar {
+  .app { width: min(100vw - 16px, 1480px); padding-top: 10px; }
+  .topbar { align-items: stretch; flex-direction: column; gap: 10px; }
+  .brand p { display: block; }
+  .top-actions, .form-actions, .search-actions, .dialog-actions { width: 100%; }
+  .top-actions .btn, .form-actions .btn, .search-actions .btn, .dialog-actions .btn { flex: 1 1 auto; }
+  .search-row { grid-template-columns: 1fr; }
+  .sync-grid { grid-template-columns: 1fr; }
+  .replace-grid { grid-template-columns: 1fr; }
+  .sync-grid .token-field { grid-column: auto; }
+  .sync-actions .btn, .replace-actions .btn { flex: 1 1 auto; }
+  .card-top, .card-bottom, .trash-item-head, .dialog-head, .dialog-foot {
     align-items: stretch;
     flex-direction: column;
   }
-
-  .top-actions,
-  .form-actions,
-  .search-actions,
-  .dialog-actions {
-    width: 100%;
-  }
-
-  .top-actions .btn,
-  .form-actions .btn,
-  .search-actions .btn,
-  .dialog-actions .btn {
-    flex: 1 1 auto;
-  }
-
-  .search-row {
-    grid-template-columns: 1fr;
-  }
-
-  .sync-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .sync-grid .token-field {
-    grid-column: auto;
-  }
-
-  .sync-actions .btn {
-    flex: 1 1 auto;
-  }
-
-  .card-top,
-  .card-bottom,
-  .dialog-head,
-  .dialog-foot {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .card-actions {
-    width: 100%;
-  }
-
-  .card-actions .btn {
-    flex: 1 1 80px;
-  }
+  .card-actions { width: 100%; }
+  .card-actions .btn { flex: 1 1 80px; }
 }
+
+/* ─── STAGGER ANIMATION ─── */
+.prompt-card:nth-child(1) { animation-delay: 0s; }
+.prompt-card:nth-child(2) { animation-delay: 0.04s; }
+.prompt-card:nth-child(3) { animation-delay: 0.08s; }
+.prompt-card:nth-child(4) { animation-delay: 0.12s; }
+.prompt-card:nth-child(5) { animation-delay: 0.16s; }
+.prompt-card:nth-child(6) { animation-delay: 0.20s; }
+.prompt-card:nth-child(7) { animation-delay: 0.24s; }
+.prompt-card:nth-child(8) { animation-delay: 0.28s; }
+.prompt-card:nth-child(n+9) { animation-delay: 0.3s; }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="topbar">
     <div class="brand">
-      <h1>프롬프트 보관함</h1>
-      <p>제목과 태그로 찾고, 긴 본문은 바로 복사합니다.</p>
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 17h6"/><path d="M9 13h6"/></svg>
+      </div>
+      <div>
+        <h1>프롬프트 보관함</h1>
+        <p>제목과 태그로 찾고, 긴 본문은 바로 복사합니다.</p>
+      </div>
     </div>
     <div class="top-actions">
-      <button class="btn primary" id="addJsonBtn" type="button">JSON 추가</button>
-      <button class="btn" id="exportBtn" type="button">백업 내보내기</button>
-      <button class="btn" id="importBtn" type="button">백업 불러오기</button>
+      <button class="btn primary" id="addJsonBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        JSON 추가
+      </button>
+      <button class="btn" id="exportBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        내보내기
+      </button>
+      <button class="btn" id="importBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        불러오기
+      </button>
+      <button class="btn" id="trashBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        휴지통
+      </button>
       <button class="btn danger" id="clearAllBtn" type="button">전체 삭제</button>
+      <button class="theme-toggle" id="themeToggle" type="button" title="테마 전환" aria-label="테마 전환">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
       <input class="hidden" id="jsonFileInput" type="file" accept="application/json,.json" />
       <input class="hidden" id="importFile" type="file" accept="application/json,.json" />
     </div>
@@ -831,7 +976,10 @@ dialog::backdrop {
     <section class="main" aria-label="프롬프트 목록">
       <details class="panel sync-panel" id="githubSyncDetails">
         <summary class="sync-summary">
-          <span class="sync-title">GitHub 동기화</span>
+          <span class="sync-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            GitHub 동기화
+          </span>
           <span class="sync-summary-status" id="githubSummaryStatus">미연결</span>
         </summary>
         <div class="sync-body">
@@ -859,8 +1007,10 @@ dialog::backdrop {
         </div>
         <div class="sync-actions">
           <button class="btn" id="saveGithubConfigBtn" type="button">연결 저장</button>
+          <button class="btn" id="testGithubBtn" type="button">연결 테스트</button>
           <button class="btn" id="loadGithubBtn" type="button">GitHub에서 불러오기</button>
           <button class="btn primary" id="saveGithubBtn" type="button">GitHub에 저장</button>
+          <button class="btn danger" id="clearGithubTokenBtn" type="button">토큰 지우기</button>
         </div>
         <div class="sync-status" id="githubStatus">GitHub 저장소를 연결하면 여러 기기에서 같은 데이터를 쓸 수 있습니다.</div>
         </div>
@@ -868,7 +1018,7 @@ dialog::backdrop {
 
       <div class="panel search-panel">
         <div class="search-row">
-          <input id="searchInput" type="search" autocomplete="off" placeholder="제목/태그 검색" />
+          <input id="searchInput" type="search" autocomplete="off" placeholder="제목/태그 검색…" />
           <select id="sortSelect" aria-label="정렬">
             <option value="updated">최근 수정순</option>
             <option value="created">최근 저장순</option>
@@ -901,7 +1051,10 @@ dialog::backdrop {
             <textarea id="bodyInput" spellcheck="false" placeholder="긴 프롬프트를 붙여넣으세요."></textarea>
           </div>
           <div class="form-actions">
-            <button class="btn primary" id="saveBtn" type="submit">저장</button>
+            <button class="btn primary" id="saveBtn" type="submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              저장
+            </button>
             <button class="btn" id="resetBtn" type="button">새로 작성</button>
           </div>
         </form>
@@ -927,12 +1080,47 @@ dialog::backdrop {
   </div>
   <div class="dialog-body">
     <div class="dialog-tags" id="viewTags"></div>
+    <details class="replace-panel" id="replacePanel">
+      <summary class="replace-summary">
+        <span class="replace-title">이름 변환</span>
+        <span class="replace-status" id="replaceStatus">원본 보기</span>
+      </summary>
+      <div class="replace-body">
+        <div class="replace-grid">
+          <div class="field">
+            <label for="replaceUserInput">{{user}}</label>
+            <input id="replaceUserInput" type="text" autocomplete="off" placeholder="사용자 이름" />
+          </div>
+          <div class="field">
+            <label for="replaceCharInput">{{char}}</label>
+            <input id="replaceCharInput" type="text" autocomplete="off" placeholder="캐릭터/타이틀" />
+          </div>
+          <div class="field">
+            <label for="replaceModeSelect">방향</label>
+            <select id="replaceModeSelect">
+              <option value="tokens-to-names">{{user}}/{{char}} → 지정 글자</option>
+              <option value="swap-tokens">{{user}} ↔ {{char}}</option>
+              <option value="names-to-tokens">지정 글자 → {{user}}/{{char}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="replace-actions">
+          <button class="btn small primary" id="applyReplaceBtn" type="button">변환 보기</button>
+          <button class="btn small" id="toggleReplaceModeBtn" type="button">모드 전환</button>
+          <button class="btn small" id="copyReplaceBtn" type="button">변환 복사</button>
+          <button class="btn small" id="resetReplaceBtn" type="button">원본 보기</button>
+        </div>
+      </div>
+    </details>
     <pre class="full-body" id="viewBody"></pre>
   </div>
   <div class="dialog-foot">
     <span class="mini-stat" id="viewCounter"></span>
     <div class="dialog-actions">
-      <button class="btn primary" id="copyDialogBtn" type="button">본문 복사</button>
+      <button class="btn primary" id="copyDialogBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        본문 복사
+      </button>
       <button class="btn" id="editDialogBtn" type="button">수정</button>
     </div>
   </div>
@@ -971,23 +1159,68 @@ dialog::backdrop {
   </form>
 </dialog>
 
+<dialog id="trashDialog">
+  <div class="dialog-head">
+    <div class="dialog-title">
+      <h2>휴지통</h2>
+      <p id="trashMeta">삭제한 항목을 복구하거나 휴지통에서 비울 수 있습니다.</p>
+    </div>
+    <button class="btn small" id="closeTrashBtn" type="button">닫기</button>
+  </div>
+  <div class="dialog-body">
+    <div class="trash-list" id="trashList"></div>
+  </div>
+  <div class="dialog-foot">
+    <span class="mini-stat">삭제 기록은 동기화 안전장치로 유지됩니다.</span>
+    <div class="dialog-actions">
+      <button class="btn danger" id="emptyTrashBtn" type="button">휴지통 비우기</button>
+    </div>
+  </div>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (() => {
   "use strict";
 
+  /* ─── Theme toggle ─── */
+  const THEME_KEY = "prompt-vault-theme";
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    const theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+  initTheme();
+
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme");
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem(THEME_KEY, next);
+    });
+  }
+
   const DB_NAME = "prompt-vault-db";
   const DB_VERSION = 1;
   const STORE_NAME = "prompts";
+  const APP_VERSION = "2.0.0";
+  const DATA_VERSION = 2;
   const PREVIEW_LIMIT = 360;
   const GITHUB_CONFIG_KEY = "prompt-vault-github-config";
+  const DELETED_ITEMS_KEY = "prompt-vault-deleted-items";
+  const TRASH_ITEMS_KEY = "prompt-vault-trash-items";
+  const TRANSFORM_CONFIG_KEY = "prompt-vault-transform-config";
   const AUTO_SAVE_DELAY = 2600;
   const MOBILE_COMPOSER_QUERY = "(max-width: 980px)";
 
   const state = {
     db: null,
     prompts: [],
+    deletedItems: {},
+    trashItems: {},
     activeTags: [],
     editingId: "",
     viewingId: "",
@@ -1001,6 +1234,13 @@ dialog::backdrop {
     suppressAutoSave: false,
     search: "",
     sort: "updated",
+    viewTransform: {
+      active: false,
+      mode: "tokens-to-names",
+      userName: "",
+      charName: "",
+      lastCount: 0
+    },
     toastTimer: null
   };
 
@@ -1032,14 +1272,22 @@ dialog::backdrop {
     githubStatus: $("#githubStatus"),
     githubSummaryStatus: $("#githubSummaryStatus"),
     saveGithubConfig: $("#saveGithubConfigBtn"),
+    testGithub: $("#testGithubBtn"),
     loadGithub: $("#loadGithubBtn"),
     saveGithub: $("#saveGithubBtn"),
+    clearGithubToken: $("#clearGithubTokenBtn"),
     addJsonBtn: $("#addJsonBtn"),
     jsonFileInput: $("#jsonFileInput"),
     exportBtn: $("#exportBtn"),
     importBtn: $("#importBtn"),
     importFile: $("#importFile"),
+    trashBtn: $("#trashBtn"),
     clearAllBtn: $("#clearAllBtn"),
+    trashDialog: $("#trashDialog"),
+    trashList: $("#trashList"),
+    trashMeta: $("#trashMeta"),
+    closeTrash: $("#closeTrashBtn"),
+    emptyTrash: $("#emptyTrashBtn"),
     jsonDialog: $("#jsonDialog"),
     jsonForm: $("#jsonForm"),
     jsonDialogTitle: $("#jsonDialogTitle"),
@@ -1056,6 +1304,15 @@ dialog::backdrop {
     viewTitle: $("#viewTitle"),
     viewMeta: $("#viewMeta"),
     viewTags: $("#viewTags"),
+    replacePanel: $("#replacePanel"),
+    replaceStatus: $("#replaceStatus"),
+    replaceUser: $("#replaceUserInput"),
+    replaceChar: $("#replaceCharInput"),
+    replaceMode: $("#replaceModeSelect"),
+    applyReplace: $("#applyReplaceBtn"),
+    toggleReplaceMode: $("#toggleReplaceModeBtn"),
+    copyReplace: $("#copyReplaceBtn"),
+    resetReplace: $("#resetReplaceBtn"),
     viewBody: $("#viewBody"),
     viewCounter: $("#viewCounter"),
     copyDialog: $("#copyDialogBtn"),
@@ -1068,6 +1325,9 @@ dialog::backdrop {
   async function init() {
     bindEvents();
     syncComposerDisclosure();
+    loadDeletedItems();
+    loadTrashItems();
+    loadTransformConfig();
     loadGithubConfig();
     try {
       state.db = await openDatabase();
@@ -1103,8 +1363,10 @@ dialog::backdrop {
       render();
     });
     els.saveGithubConfig.addEventListener("click", saveGithubConfigFromForm);
+    els.testGithub.addEventListener("click", testGithubConnection);
     els.loadGithub.addEventListener("click", loadFromGithub);
     els.saveGithub.addEventListener("click", () => saveToGithub({ manual: true }));
+    els.clearGithubToken.addEventListener("click", clearGithubToken);
     els.tagStrip.addEventListener("click", handleTagClick);
     els.promptTagSuggestions.addEventListener("click", (event) => handleTagSuggestionClick(event, els.tags));
     els.jsonTagSuggestions.addEventListener("click", (event) => handleTagSuggestionClick(event, els.jsonTags));
@@ -1117,9 +1379,21 @@ dialog::backdrop {
     els.exportBtn.addEventListener("click", exportPrompts);
     els.importBtn.addEventListener("click", () => els.importFile.click());
     els.importFile.addEventListener("change", importPrompts);
+    els.trashBtn.addEventListener("click", openTrashDialog);
+    els.closeTrash.addEventListener("click", () => els.trashDialog.close());
+    els.emptyTrash.addEventListener("click", emptyTrash);
+    els.trashList.addEventListener("click", handleTrashClick);
     els.clearAllBtn.addEventListener("click", clearAllPrompts);
     els.closeDialog.addEventListener("click", () => els.dialog.close());
     els.copyDialog.addEventListener("click", () => copyViewingPrompt(els.copyDialog));
+    els.applyReplace.addEventListener("click", applyPromptTransform);
+    els.resetReplace.addEventListener("click", resetPromptTransform);
+    els.copyReplace.addEventListener("click", () => copyTransformedPrompt(els.copyReplace));
+    els.toggleReplaceMode.addEventListener("click", toggleReplaceMode);
+    [els.replaceUser, els.replaceChar, els.replaceMode].forEach((input) => {
+      input.addEventListener("input", handleTransformInput);
+      input.addEventListener("change", handleTransformInput);
+    });
     els.editDialog.addEventListener("click", () => {
       const id = state.viewingId;
       els.dialog.close();
@@ -1137,20 +1411,17 @@ dialog::backdrop {
 
   function syncComposerDisclosure() {
     if (!els.composerDetails) return;
-
     const isMobile = window.matchMedia(MOBILE_COMPOSER_QUERY).matches;
     if (isMobile && !state.editingId) {
       els.composerDetails.removeAttribute("open");
       return;
     }
-
     els.composerDetails.setAttribute("open", "");
   }
 
   function openDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
-
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -1159,7 +1430,6 @@ dialog::backdrop {
           store.createIndex("createdAt", "createdAt", { unique: false });
         }
       };
-
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -1170,7 +1440,6 @@ dialog::backdrop {
       const tx = state.db.transaction(STORE_NAME, mode);
       const store = tx.objectStore(STORE_NAME);
       const result = callback(store);
-
       tx.oncomplete = () => resolve(result);
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error);
@@ -1188,36 +1457,84 @@ dialog::backdrop {
   }
 
   async function loadPrompts() {
-    state.prompts = (await getAllItems()).map(sanitizePrompt).filter(Boolean);
+    state.prompts = (await getAllItems())
+      .map(sanitizePrompt)
+      .filter((item) => item && (!state.deletedItems[item.id] || dateValue(item.updatedAt) > dateValue(state.deletedItems[item.id])));
     await updateStorageInfo();
   }
 
-  async function putPrompt(prompt) {
-    await withStore("readwrite", (store) => store.put(prompt));
+  function loadDeletedItems() {
+    try { state.deletedItems = sanitizeDeletedItems(JSON.parse(localStorage.getItem(DELETED_ITEMS_KEY) || "{}")); }
+    catch { state.deletedItems = {}; }
   }
+
+  function saveDeletedItems() { localStorage.setItem(DELETED_ITEMS_KEY, JSON.stringify(state.deletedItems)); }
+
+  function loadTrashItems() {
+    try { state.trashItems = sanitizeTrashItems(JSON.parse(localStorage.getItem(TRASH_ITEMS_KEY) || "{}")); }
+    catch { state.trashItems = {}; }
+  }
+
+  function saveTrashItems() { localStorage.setItem(TRASH_ITEMS_KEY, JSON.stringify(sortTrashItems(state.trashItems))); }
+
+  function loadTransformConfig() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(TRANSFORM_CONFIG_KEY) || "{}");
+      state.viewTransform.userName = String(saved.userName || "");
+      state.viewTransform.charName = String(saved.charName || "");
+      state.viewTransform.mode = normalizeTransformMode(saved.mode);
+    } catch {
+      state.viewTransform.userName = "";
+      state.viewTransform.charName = "";
+      state.viewTransform.mode = "tokens-to-names";
+    }
+    els.replaceUser.value = state.viewTransform.userName;
+    els.replaceChar.value = state.viewTransform.charName;
+    els.replaceMode.value = state.viewTransform.mode;
+    updateTransformStatus();
+  }
+
+  function saveTransformConfig() {
+    localStorage.setItem(TRANSFORM_CONFIG_KEY, JSON.stringify({
+      userName: state.viewTransform.userName,
+      charName: state.viewTransform.charName,
+      mode: state.viewTransform.mode
+    }));
+  }
+
+  function markDeleted(ids, deletedAt = new Date().toISOString()) {
+    ids.filter(Boolean).forEach((id) => {
+      const key = String(id);
+      const previous = state.deletedItems[key];
+      if (!previous || dateValue(deletedAt) > dateValue(previous)) {
+        state.deletedItems[key] = deletedAt;
+      }
+    });
+    saveDeletedItems();
+  }
+
+  function moveToTrash(items, deletedAt = new Date().toISOString()) {
+    items.map(sanitizePrompt).filter(Boolean).forEach((item) => {
+      state.trashItems[item.id] = { ...item, deletedAt };
+    });
+    saveTrashItems();
+  }
+
+  async function putPrompt(prompt) { await withStore("readwrite", (store) => store.put(prompt)); }
 
   async function putPrompts(prompts) {
-    await withStore("readwrite", (store) => {
-      prompts.forEach((prompt) => store.put(prompt));
-    });
+    await withStore("readwrite", (store) => { prompts.forEach((prompt) => store.put(prompt)); });
   }
 
-  async function deletePrompt(id) {
-    await withStore("readwrite", (store) => store.delete(id));
-  }
+  async function deletePrompt(id) { await withStore("readwrite", (store) => store.delete(id)); }
 
-  async function clearStore() {
-    await withStore("readwrite", (store) => store.clear());
-  }
+  async function clearStore() { await withStore("readwrite", (store) => store.clear()); }
 
   function loadGithubConfig() {
     try {
       const saved = JSON.parse(localStorage.getItem(GITHUB_CONFIG_KEY) || "null");
       state.githubConfig = saved && typeof saved === "object" ? saved : {};
-    } catch {
-      state.githubConfig = {};
-    }
-
+    } catch { state.githubConfig = {}; }
     els.githubOwner.value = state.githubConfig.owner || "";
     els.githubRepo.value = state.githubConfig.repo || "";
     els.githubBranch.value = state.githubConfig.branch || "main";
@@ -1239,16 +1556,50 @@ dialog::backdrop {
   function saveGithubConfigFromForm() {
     const config = readGithubConfigFromForm();
     const missing = validateGithubConfig(config);
-    if (missing) {
-      showToast(missing);
-      return;
-    }
-
+    if (missing) { showToast(missing); return; }
     state.githubConfig = config;
     localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
     state.githubSha = "";
     updateGithubStatus("연결 설정을 저장했습니다.");
     showToast("GitHub 연결 설정을 저장했습니다.");
+  }
+
+  async function testGithubConnection() {
+    const config = readGithubConfigFromForm();
+    const missing = validateGithubConfig(config);
+    if (missing) { showToast(missing); return; }
+    try {
+      setGithubBusy(true);
+      updateGithubStatus("GitHub 연결을 확인하는 중입니다...");
+      state.githubConfig = config;
+      localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
+      const remote = await githubRequest(config, "GET");
+      state.githubSha = remote.sha || "";
+      const remoteVault = parseVaultPayload(JSON.parse(decodeBase64(remote.content || "")));
+      updateGithubStatus(`연결됨: 원격 ${formatNumber(remoteVault.items.length)}개, 휴지통 ${formatNumber(Object.keys(remoteVault.trashItems).length)}개`);
+      showToast("GitHub 연결이 정상입니다.");
+    } catch (error) {
+      if (error.status === 404) {
+        updateGithubStatus("연결은 됐지만 data 파일은 아직 없습니다. 저장하면 새로 만듭니다.");
+        showToast("data 파일은 아직 없습니다.");
+      } else {
+        console.error(error);
+        updateGithubStatus("GitHub 연결 테스트에 실패했습니다.");
+        showToast(githubErrorMessage(error, "GitHub 연결을 확인하지 못했습니다."));
+      }
+    } finally { setGithubBusy(false); }
+  }
+
+  function clearGithubToken() {
+    if (!els.githubToken.value && !(state.githubConfig && state.githubConfig.token)) {
+      showToast("지울 토큰이 없습니다."); return;
+    }
+    els.githubToken.value = "";
+    state.githubConfig = { ...readGithubConfigFromForm(), token: "" };
+    state.githubSha = "";
+    localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(state.githubConfig));
+    updateGithubStatus("토큰을 이 브라우저에서 지웠습니다.");
+    showToast("토큰을 지웠습니다.");
   }
 
   function validateGithubConfig(config) {
@@ -1265,7 +1616,6 @@ dialog::backdrop {
       els.githubSummaryStatus.textContent = message;
       return;
     }
-
     const config = state.githubConfig || {};
     if (config.owner && config.repo && config.path) {
       els.githubStatus.textContent = `${config.owner}/${config.repo}/${config.path}`;
@@ -1278,13 +1628,10 @@ dialog::backdrop {
 
   function scheduleGithubAutoSave() {
     if (state.suppressAutoSave) return;
-
     const config = readGithubConfigFromForm();
     if (validateGithubConfig(config)) {
-      updateGithubStatus("로컬에 저장됨. GitHub 연결 후 자동 저장됩니다.");
-      return;
+      updateGithubStatus("로컬에 저장됨. GitHub 연결 후 자동 저장됩니다."); return;
     }
-
     state.githubConfig = config;
     localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
     state.autoSaveQueued = true;
@@ -1303,20 +1650,13 @@ dialog::backdrop {
   }
 
   function normalizeGithubPath(value) {
-    return String(value || "")
-      .trim()
-      .replace(/^\/+/, "")
-      .replace(/\/+/g, "/");
+    return String(value || "").trim().replace(/^\/+/, "").replace(/\/+/g, "/");
   }
 
   async function loadFromGithub() {
     const config = readGithubConfigFromForm();
     const missing = validateGithubConfig(config);
-    if (missing) {
-      showToast(missing);
-      return;
-    }
-
+    if (missing) { showToast(missing); return; }
     try {
       clearGithubAutoSaveTimer();
       state.suppressAutoSave = true;
@@ -1324,26 +1664,23 @@ dialog::backdrop {
       updateGithubStatus("GitHub에서 데이터를 불러오는 중입니다...");
       state.githubConfig = config;
       localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
-
       const remote = await githubRequest(config, "GET");
       state.githubSha = remote.sha || "";
       const text = decodeBase64(remote.content || "");
-      const parsed = JSON.parse(text);
-      const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
-
-      if (!Array.isArray(rawItems)) {
-        throw new Error("data file does not contain items");
-      }
-
-      const items = rawItems.map(sanitizePrompt).filter((item) => item && item.body.trim());
-      await replaceAllPrompts(items);
+      const remoteVault = parseVaultPayload(JSON.parse(text));
+      const merged = mergeVaultData(state.prompts, remoteVault.items, state.deletedItems, remoteVault.deletedItems, state.trashItems, remoteVault.trashItems);
+      state.deletedItems = merged.deletedItems;
+      state.trashItems = merged.trashItems;
+      saveDeletedItems();
+      saveTrashItems();
+      await replaceAllPrompts(merged.items);
       resetForm();
       state.activeTags = [];
       state.search = "";
       els.search.value = "";
       await loadPrompts();
       render();
-      updateGithubStatus(`GitHub에서 ${formatNumber(items.length)}개를 불러왔습니다. ${formatDate(new Date().toISOString())}`);
+      updateGithubStatus(`GitHub에서 ${formatNumber(merged.items.length)}개를 불러왔습니다. ${formatDate(new Date().toISOString())}`);
       showToast("GitHub 데이터를 불러왔습니다.");
     } catch (error) {
       console.error(error);
@@ -1357,14 +1694,12 @@ dialog::backdrop {
 
   async function saveToGithub(options = {}) {
     const manual = options.manual !== false;
-
     if (state.isGithubSaving) {
       state.autoSaveQueued = true;
       updateGithubStatus("GitHub 저장 중입니다. 끝나면 한 번 더 저장합니다.");
       if (manual) showToast("저장 중입니다. 잠시 뒤 다시 반영됩니다.");
       return;
     }
-
     const config = readGithubConfigFromForm();
     const missing = validateGithubConfig(config);
     if (missing) {
@@ -1372,51 +1707,49 @@ dialog::backdrop {
       else updateGithubStatus("GitHub 자동 저장 대기 중: 연결 설정이 필요합니다.");
       return;
     }
-
     try {
       state.autoSaveQueued = false;
       setGithubBusy(true);
       updateGithubStatus(manual ? "GitHub에 데이터를 저장하는 중입니다..." : "GitHub 자동 저장 중입니다...");
       state.githubConfig = config;
       localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
-
-      let sha = state.githubSha;
-      if (!sha) {
-        try {
-          const remote = await githubRequest(config, "GET");
-          sha = remote.sha || "";
-          state.githubSha = sha;
-        } catch (error) {
-          if (error.status !== 404) throw error;
-        }
-      }
-
-      const payload = {
-        app: "prompt-vault",
-        version: 1,
-        savedAt: new Date().toISOString(),
-        items: state.prompts
-      };
-      const body = {
-        message: `Update prompt vault data ${makeDateStamp()}`,
-        content: encodeBase64(JSON.stringify(payload, null, 2)),
-        branch: config.branch
-      };
+      let sha = "";
+      let remoteVault = { items: [], deletedItems: {}, trashItems: {} };
+      try {
+        const remote = await githubRequest(config, "GET");
+        sha = remote.sha || "";
+        state.githubSha = sha;
+        remoteVault = parseVaultPayload(JSON.parse(decodeBase64(remote.content || "")));
+      } catch (error) { if (error.status !== 404) throw error; state.githubSha = ""; }
+      const merged = mergeVaultData(state.prompts, remoteVault.items, state.deletedItems, remoteVault.deletedItems, state.trashItems, remoteVault.trashItems);
+      state.deletedItems = merged.deletedItems;
+      state.trashItems = merged.trashItems;
+      saveDeletedItems();
+      saveTrashItems();
+      await replaceAllPrompts(merged.items);
+      await loadPrompts();
+      render();
+      const payload = buildVaultPayload(merged.items, merged.deletedItems, merged.trashItems);
+      const body = { message: `Update prompt vault data ${makeDateStamp()}`, content: encodeBase64(JSON.stringify(payload, null, 2)), branch: config.branch };
       if (sha) body.sha = sha;
-
       const result = await githubRequest(config, "PUT", body);
       state.githubSha = result.content && result.content.sha ? result.content.sha : "";
       updateGithubStatus(`GitHub에 저장됨 ${formatDate(new Date().toISOString())}`);
       if (manual) showToast("GitHub에 저장했습니다.");
     } catch (error) {
       console.error(error);
-      showToast(githubErrorMessage(error, "GitHub에 저장하지 못했습니다."));
-      updateGithubStatus("GitHub 저장에 실패했습니다.");
+      if (error.status === 409) {
+        state.githubSha = "";
+        state.autoSaveQueued = true;
+        updateGithubStatus("원격 파일이 먼저 바뀌었습니다. 다시 병합 저장을 예약했습니다.");
+        showToast("원격 변경을 감지했습니다. 다시 저장합니다.");
+      } else {
+        showToast(githubErrorMessage(error, "GitHub에 저장하지 못했습니다."));
+        updateGithubStatus("GitHub 저장에 실패했습니다.");
+      }
     } finally {
       setGithubBusy(false);
-      if (state.autoSaveQueued) {
-        scheduleGithubAutoSave();
-      }
+      if (state.autoSaveQueued) scheduleGithubAutoSave();
     }
   }
 
@@ -1432,43 +1765,142 @@ dialog::backdrop {
       },
       body: body ? JSON.stringify(body) : undefined
     });
-
     const text = await response.text();
     let data = null;
-    if (text) {
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text };
-      }
-    }
-
+    if (text) { try { data = JSON.parse(text); } catch { data = { message: text }; } }
     if (!response.ok) {
       const error = new Error(data && data.message ? data.message : `GitHub API ${response.status}`);
       error.status = response.status;
       error.data = data;
       throw error;
     }
-
     return data || {};
+  }
+
+  function parseVaultPayload(parsed) {
+    if (!Array.isArray(parsed) && parsed && parsed.minAppVersion && compareVersions(APP_VERSION, parsed.minAppVersion) < 0) {
+      throw new Error(`이 데이터는 더 새 앱 버전이 필요합니다. 필요한 버전: ${parsed.minAppVersion}`);
+    }
+    const rawItems = Array.isArray(parsed) ? parsed : parsed && parsed.items;
+    if (!Array.isArray(rawItems)) throw new Error("data file does not contain items");
+    return {
+      items: rawItems.map(sanitizePrompt).filter((item) => item && item.body.trim()),
+      deletedItems: Array.isArray(parsed) ? {} : sanitizeDeletedItems(parsed.deletedItems),
+      trashItems: Array.isArray(parsed) ? {} : sanitizeTrashItems(parsed.trashItems)
+    };
+  }
+
+  function sanitizeDeletedItems(raw) {
+    const result = {};
+    const entries = Array.isArray(raw) ? raw.map((item) => [item && item.id, item && item.deletedAt]) : Object.entries(raw && typeof raw === "object" ? raw : {});
+    entries.forEach(([id, deletedAt]) => {
+      const key = String(id || "").trim();
+      if (key && isValidDate(deletedAt)) {
+        const value = new Date(deletedAt).toISOString();
+        if (!result[key] || dateValue(value) > dateValue(result[key])) result[key] = value;
+      }
+    });
+    return result;
+  }
+
+  function mergeDeletedItems(...sets) {
+    const merged = {};
+    sets.forEach((set) => {
+      Object.entries(sanitizeDeletedItems(set)).forEach(([id, deletedAt]) => {
+        if (!merged[id] || dateValue(deletedAt) > dateValue(merged[id])) merged[id] = deletedAt;
+      });
+    });
+    return merged;
+  }
+
+  function sanitizeTrashItems(raw) {
+    const result = {};
+    const entries = Array.isArray(raw) ? raw.map((item) => [item && item.id, item]) : Object.entries(raw && typeof raw === "object" ? raw : {});
+    entries.forEach(([id, rawItem]) => {
+      const item = sanitizePrompt(rawItem);
+      if (!item || !item.body.trim()) return;
+      const key = String(id || item.id || "").trim();
+      if (!key) return;
+      const deletedAt = isValidDate(rawItem && rawItem.deletedAt) ? new Date(rawItem.deletedAt).toISOString() : item.updatedAt;
+      const previous = result[key];
+      if (!previous || dateValue(deletedAt) >= dateValue(previous.deletedAt)) {
+        result[key] = { ...item, id: key, deletedAt };
+      }
+    });
+    return result;
+  }
+
+  function mergeTrashItems(deletedItems, activeItems, ...sets) {
+    const activeIds = new Set(activeItems.map((item) => item.id));
+    const merged = {};
+    sets.forEach((set) => {
+      Object.entries(sanitizeTrashItems(set)).forEach(([id, item]) => {
+        const deletedAt = deletedItems[id];
+        if (!deletedAt || activeIds.has(id)) return;
+        const previous = merged[id];
+        if (!previous || dateValue(item.deletedAt) >= dateValue(previous.deletedAt)) {
+          merged[id] = { ...item, deletedAt };
+        }
+      });
+    });
+    return sortTrashItems(merged);
+  }
+
+  function sortTrashItems(trashItems) {
+    return Object.fromEntries(
+      Object.entries(sanitizeTrashItems(trashItems)).sort((a, b) => {
+        const deletedDiff = dateValue(b[1].deletedAt) - dateValue(a[1].deletedAt);
+        return deletedDiff || a[1].title.localeCompare(b[1].title, "ko");
+      })
+    );
+  }
+
+  function mergeVaultData(localItems, remoteItems, localDeleted, remoteDeleted, localTrash, remoteTrash) {
+    const deletedItems = mergeDeletedItems(remoteDeleted, localDeleted);
+    const map = new Map();
+    [...remoteItems, ...localItems].forEach((item) => {
+      const existing = map.get(item.id);
+      if (!existing || dateValue(item.updatedAt) >= dateValue(existing.updatedAt)) map.set(item.id, item);
+    });
+    const items = [...map.values()].filter((item) => {
+      const deletedAt = deletedItems[item.id];
+      return !deletedAt || dateValue(item.updatedAt) > dateValue(deletedAt);
+    });
+    const trashItems = mergeTrashItems(deletedItems, items, localTrash, remoteTrash);
+    return { items, deletedItems, trashItems };
+  }
+
+  function buildVaultPayload(items, deletedItems, trashItems) {
+    return {
+      app: "prompt-vault",
+      appVersion: APP_VERSION,
+      minAppVersion: "2.0.0",
+      version: DATA_VERSION,
+      savedAt: new Date().toISOString(),
+      items,
+      deletedItems: sortDeletedItems(deletedItems),
+      trashItems: sortTrashItems(trashItems)
+    };
+  }
+
+  function sortDeletedItems(deleted) {
+    return Object.fromEntries(Object.entries(sanitizeDeletedItems(deleted)).sort((a, b) => dateValue(b[1]) - dateValue(a[1])));
   }
 
   async function replaceAllPrompts(items) {
     await clearStore();
-    if (items.length) {
-      await putPrompts(items);
-    }
+    await putPrompts(items);
   }
 
-  function setGithubBusy(isBusy) {
-    state.isGithubSaving = isBusy;
-    els.loadGithub.disabled = isBusy;
-    els.saveGithub.disabled = isBusy;
-    els.saveGithubConfig.disabled = isBusy;
+  function setGithubBusy(busy) {
+    state.isGithubSaving = busy;
+    [els.loadGithub, els.saveGithub, els.testGithub].forEach((btn) => { btn.disabled = busy; });
   }
 
   function githubErrorMessage(error, fallback) {
-    if (error.status === 401 || error.status === 403) return "GitHub 토큰 권한을 확인해주세요.";
+    if (!error) return fallback;
+    if (error.status === 401) return "GitHub 토큰이 만료됐거나 잘못됐습니다.";
+    if (error.status === 403) return "GitHub 토큰 권한이 부족합니다.";
     if (error.status === 404) return "GitHub repo 또는 data path를 찾지 못했습니다.";
     if (error.status === 409) return "GitHub 파일이 바뀌었습니다. 먼저 불러온 뒤 다시 저장해주세요.";
     return error && error.message ? error.message : fallback;
@@ -1476,35 +1908,20 @@ dialog::backdrop {
 
   async function saveFromForm(event) {
     event.preventDefault();
-
     const title = els.title.value.trim();
     const body = els.body.value;
     const tags = parseTags(els.tags.value);
-
-    if (!title) {
-      showToast("제목을 입력해주세요.");
-      els.title.focus();
-      return;
-    }
-
-    if (!body.trim()) {
-      showToast("본문을 입력해주세요.");
-      els.body.focus();
-      return;
-    }
-
+    if (!title) { showToast("제목을 입력해주세요."); els.title.focus(); return; }
+    if (!body.trim()) { showToast("본문을 입력해주세요."); els.body.focus(); return; }
     const previous = state.editingId ? state.prompts.find((prompt) => prompt.id === state.editingId) : null;
     const now = new Date().toISOString();
     const item = {
       id: previous ? previous.id : createId(),
-      title,
-      body,
-      tags,
+      title, body, tags,
       favorite: previous ? Boolean(previous.favorite) : false,
       createdAt: previous ? previous.createdAt : now,
       updatedAt: now
     };
-
     await putPrompt(item);
     const edited = Boolean(previous);
     resetForm();
@@ -1517,7 +1934,7 @@ dialog::backdrop {
   function resetForm() {
     state.editingId = "";
     els.editorTitle.textContent = "새 항목";
-    els.saveBtn.textContent = "저장";
+    els.saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 저장';
     els.title.value = "";
     els.tags.value = "";
     els.body.value = "";
@@ -1531,135 +1948,77 @@ dialog::backdrop {
   async function handleJsonFileSelect(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-
     try {
       const text = await file.text();
       JSON.parse(text);
       state.pendingJsonFile = {
-        body: text,
-        fileName: file.name || "data.json",
+        body: text, fileName: file.name || "data.json",
         mimeType: file.type || "application/json",
         fileSize: file.size || byteLength(text),
         lastModified: file.lastModified || 0
       };
       state.jsonEditingId = "";
-      openJsonDialog({
-        title: stripJsonExtension(file.name || "data.json"),
-        tags: "",
-        fileName: state.pendingJsonFile.fileName,
-        fileSize: state.pendingJsonFile.fileSize,
-        mode: "add"
-      });
+      openJsonDialog({ title: stripJsonExtension(file.name || "data.json"), tags: "", fileName: state.pendingJsonFile.fileName, fileSize: state.pendingJsonFile.fileSize, mode: "add" });
     } catch (error) {
       console.error(error);
       showToast("올바른 JSON 파일이 아닙니다.");
-    } finally {
-      event.target.value = "";
-    }
+    } finally { event.target.value = ""; }
   }
 
   function openJsonDialog(data) {
     els.jsonDialogTitle.textContent = data.mode === "edit" ? "JSON 이름/태그 수정" : "JSON 파일 추가";
     els.jsonTitle.value = data.title || "";
     els.jsonTags.value = data.tags || "";
-    els.jsonFileInfo.innerHTML = `
-      <strong>${escapeHtml(data.fileName || "data.json")}</strong>
-      <span>${formatBytes(data.fileSize || 0)}</span>
-    `;
+    els.jsonFileInfo.innerHTML = `<strong>${escapeHtml(data.fileName || "data.json")}</strong><span>${formatBytes(data.fileSize || 0)}</span>`;
     els.jsonDialogMeta.textContent = data.mode === "edit" ? "파일 내용은 그대로 유지됩니다." : "JSON 파일 항목";
-
-    if (typeof els.jsonDialog.showModal === "function") {
-      els.jsonDialog.showModal();
-    } else {
-      els.jsonDialog.setAttribute("open", "");
-    }
+    if (typeof els.jsonDialog.showModal === "function") els.jsonDialog.showModal();
+    else els.jsonDialog.setAttribute("open", "");
     els.jsonTitle.focus();
   }
 
   function closeJsonDialog() {
     state.pendingJsonFile = null;
     state.jsonEditingId = "";
-    if (els.jsonDialog.open && typeof els.jsonDialog.close === "function") {
-      els.jsonDialog.close();
-    } else {
-      els.jsonDialog.removeAttribute("open");
-    }
+    if (els.jsonDialog.open && typeof els.jsonDialog.close === "function") els.jsonDialog.close();
+    else els.jsonDialog.removeAttribute("open");
   }
 
   async function saveJsonFileItem(event) {
     event.preventDefault();
-
     const title = els.jsonTitle.value.trim();
     const tags = parseTags(els.jsonTags.value);
-
-    if (!title) {
-      showToast("JSON 이름을 입력해주세요.");
-      els.jsonTitle.focus();
-      return;
-    }
-
+    if (!title) { showToast("JSON 이름을 입력해주세요."); els.jsonTitle.focus(); return; }
     const now = new Date().toISOString();
     const previous = state.jsonEditingId ? state.prompts.find((prompt) => prompt.id === state.jsonEditingId) : null;
-
     if (previous) {
-      previous.title = title;
-      previous.tags = tags;
-      previous.updatedAt = now;
-      await putPrompt(previous);
-      closeJsonDialog();
-      await loadPrompts();
-      render();
-      showToast("JSON 이름/태그를 수정했습니다.");
-      scheduleGithubAutoSave();
-      return;
+      previous.title = title; previous.tags = tags; previous.updatedAt = now;
+      await putPrompt(previous); closeJsonDialog(); await loadPrompts(); render();
+      showToast("JSON 이름/태그를 수정했습니다."); scheduleGithubAutoSave(); return;
     }
-
-    if (!state.pendingJsonFile) {
-      showToast("JSON 파일을 다시 선택해주세요.");
-      return;
-    }
-
+    if (!state.pendingJsonFile) { showToast("JSON 파일을 다시 선택해주세요."); return; }
     await putPrompt({
-      id: createId(),
-      kind: "json",
-      title,
-      body: state.pendingJsonFile.body,
-      tags,
-      favorite: false,
-      fileName: state.pendingJsonFile.fileName,
-      mimeType: state.pendingJsonFile.mimeType,
-      fileSize: state.pendingJsonFile.fileSize,
-      createdAt: now,
-      updatedAt: now
+      id: createId(), kind: "json", title, body: state.pendingJsonFile.body, tags,
+      favorite: false, fileName: state.pendingJsonFile.fileName,
+      mimeType: state.pendingJsonFile.mimeType, fileSize: state.pendingJsonFile.fileSize,
+      createdAt: now, updatedAt: now
     });
-
-    closeJsonDialog();
-    await loadPrompts();
-    render();
-    showToast("JSON 파일을 저장했습니다.");
-    scheduleGithubAutoSave();
+    closeJsonDialog(); await loadPrompts(); render();
+    showToast("JSON 파일을 저장했습니다."); scheduleGithubAutoSave();
   }
 
   function handleTagClick(event) {
     const button = event.target.closest("[data-tag]");
     if (!button) return;
-    const tag = button.dataset.tag || "";
-    toggleActiveTag(tag);
+    toggleActiveTag(button.dataset.tag || "");
     render();
   }
 
   function toggleActiveTag(tag) {
     const cleanTag = String(tag || "").trim();
-    if (!cleanTag) {
-      state.activeTags = [];
-      return;
-    }
-
+    if (!cleanTag) { state.activeTags = []; return; }
     const key = cleanTag.toLowerCase();
     const exists = state.activeTags.some((item) => item.toLowerCase() === key);
-    state.activeTags = exists
-      ? state.activeTags.filter((item) => item.toLowerCase() !== key)
-      : [...state.activeTags, cleanTag];
+    state.activeTags = exists ? state.activeTags.filter((item) => item.toLowerCase() !== key) : [...state.activeTags, cleanTag];
   }
 
   function isActiveTag(tag) {
@@ -1675,104 +2034,131 @@ dialog::backdrop {
 
   async function handleListClick(event) {
     const tagButton = event.target.closest("[data-card-tag]");
-    if (tagButton) {
-      toggleActiveTag(tagButton.dataset.cardTag || "");
-      render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
+    if (tagButton) { toggleActiveTag(tagButton.dataset.cardTag || ""); render(); return; }
     const button = event.target.closest("[data-action]");
     if (!button) return;
-
     const card = button.closest("[data-id]");
     if (!card) return;
-
     const id = card.dataset.id;
     const action = button.dataset.action;
-
-    if (action === "copy") {
-      await copyPrompt(id, button);
-    } else if (action === "download") {
-      downloadJsonPrompt(id);
-    } else if (action === "view") {
-      openPrompt(id);
-    } else if (action === "edit") {
-      startEdit(id);
-    } else if (action === "delete") {
-      await removePrompt(id);
-    } else if (action === "favorite") {
-      await toggleFavorite(id);
-    }
+    if (action === "copy") await copyPrompt(id, button);
+    else if (action === "download") downloadJsonPrompt(id);
+    else if (action === "view") openPrompt(id);
+    else if (action === "edit") startEdit(id);
+    else if (action === "delete") await removePrompt(id);
+    else if (action === "favorite") await toggleFavorite(id);
   }
 
   function render() {
+    renderTrashBadge();
     renderTags();
     renderTagSuggestions();
     const filtered = getFilteredPrompts();
-
     els.resultCount.textContent = `${formatNumber(filtered.length)} / ${formatNumber(state.prompts.length)}개`;
-
     if (!state.prompts.length) {
-      els.list.innerHTML = `
-        <div class="empty">
-          <div>
-            <strong>아직 저장된 프롬프트가 없습니다.</strong>
-            <span>새 항목에서 첫 프롬프트를 저장하세요.</span>
-          </div>
-        </div>
-      `;
+      els.list.innerHTML = `<div class="empty"><div><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 17h6"/><path d="M9 13h6"/></svg><strong>아직 저장된 프롬프트가 없습니다.</strong><span>새 항목에서 첫 프롬프트를 저장하세요.</span></div></div>`;
       return;
     }
-
     if (!filtered.length) {
-      els.list.innerHTML = `
-        <div class="empty">
-          <div>
-            <strong>검색 결과가 없습니다.</strong>
-            <span>제목이나 태그를 바꿔보세요.</span>
-          </div>
-        </div>
-      `;
+      els.list.innerHTML = `<div class="empty"><div><strong>검색 결과가 없습니다.</strong><span>제목이나 태그를 바꿔보세요.</span></div></div>`;
       return;
     }
-
     els.list.innerHTML = filtered.map(renderCard).join("");
+  }
+
+  function renderTrashBadge() {
+    const count = Object.keys(state.trashItems).length;
+    const icon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+    els.trashBtn.innerHTML = count ? `${icon} 휴지통 ${formatNumber(count)}` : `${icon} 휴지통`;
+  }
+
+  function openTrashDialog() {
+    renderTrashDialog();
+    if (typeof els.trashDialog.showModal === "function") els.trashDialog.showModal();
+    else els.trashDialog.setAttribute("open", "");
+  }
+
+  function renderTrashDialog() {
+    const items = Object.values(state.trashItems).sort((a, b) => {
+      const deletedDiff = dateValue(b.deletedAt) - dateValue(a.deletedAt);
+      return deletedDiff || a.title.localeCompare(b.title, "ko");
+    });
+    els.trashMeta.textContent = items.length
+      ? `${formatNumber(items.length)}개 항목이 휴지통에 있습니다. 복구하면 삭제 기록보다 최신 항목으로 다시 저장됩니다.`
+      : "휴지통이 비어 있습니다.";
+    els.emptyTrash.disabled = !items.length;
+    if (!items.length) {
+      els.trashList.innerHTML = `<div class="empty"><div><strong>휴지통이 비어 있습니다.</strong><span>삭제한 항목은 여기에 표시됩니다.</span></div></div>`;
+      return;
+    }
+    els.trashList.innerHTML = items.map((item) => {
+      const tags = item.tags.length ? item.tags.map((tag) => `<span class="card-tag">${escapeHtml(tag)}</span>`).join("") : `<span class="card-tag" aria-disabled="true">태그 없음</span>`;
+      return `<article class="trash-item" data-trash-id="${escapeAttribute(item.id)}"><div class="trash-item-head"><div><div class="trash-title">${escapeHtml(item.title)}</div><div class="trash-meta">삭제 ${escapeHtml(formatDate(item.deletedAt))} · 수정 ${escapeHtml(formatDate(item.updatedAt))}</div></div><span class="mini-stat">${item.kind === "json" ? "JSON" : `${formatNumber(item.body.length)}자`}</span></div><div class="card-tags">${tags}</div><p class="preview">${escapeHtml(item.kind === "json" ? (item.fileName || makeJsonDownloadName(item)) : makePreview(item.body))}</p><div class="trash-actions"><button class="btn small primary" data-trash-action="restore" type="button">복구</button><button class="btn small danger" data-trash-action="purge" type="button">비우기</button></div></article>`;
+    }).join("");
+  }
+
+  async function handleTrashClick(event) {
+    const button = event.target.closest("[data-trash-action]");
+    if (!button) return;
+    const item = button.closest("[data-trash-id]");
+    if (!item) return;
+    const id = item.dataset.trashId || "";
+    if (button.dataset.trashAction === "restore") await restoreTrashItem(id);
+    else if (button.dataset.trashAction === "purge") purgeTrashItem(id);
+  }
+
+  async function restoreTrashItem(id) {
+    const item = state.trashItems[id];
+    if (!item) return;
+    const restored = sanitizePrompt(item);
+    if (!restored) return;
+    restored.updatedAt = new Date().toISOString();
+    delete state.trashItems[id];
+    delete state.deletedItems[id];
+    saveTrashItems(); saveDeletedItems();
+    await putPrompt(restored); await loadPrompts(); render(); renderTrashDialog();
+    showToast("휴지통에서 복구했습니다."); scheduleGithubAutoSave();
+  }
+
+  function purgeTrashItem(id) {
+    const item = state.trashItems[id];
+    if (!item) return;
+    if (!confirm(`"${item.title}" 항목을 휴지통에서 비울까요? 삭제 기록은 유지됩니다.`)) return;
+    delete state.trashItems[id];
+    saveTrashItems(); render(); renderTrashDialog();
+    showToast("휴지통에서 비웠습니다."); scheduleGithubAutoSave();
+  }
+
+  function emptyTrash() {
+    const count = Object.keys(state.trashItems).length;
+    if (!count) { showToast("휴지통이 비어 있습니다."); return; }
+    if (!confirm(`휴지통의 ${formatNumber(count)}개 항목을 비울까요? 삭제 기록은 유지됩니다.`)) return;
+    state.trashItems = {};
+    saveTrashItems(); render(); renderTrashDialog();
+    showToast("휴지통을 비웠습니다."); scheduleGithubAutoSave();
   }
 
   function renderTags() {
     const tags = getTagEntries("name");
     const allClass = state.activeTags.length ? "tag-chip" : "tag-chip active";
-    const buttons = [
-      `<button class="${allClass}" data-tag="" type="button">전체 <span>${formatNumber(state.prompts.length)}</span></button>`
-    ];
-
+    const buttons = [`<button class="${allClass}" data-tag="" type="button">전체 <span>${formatNumber(state.prompts.length)}</span></button>`];
     tags.forEach(([tag, count]) => {
       const active = isActiveTag(tag) ? " active" : "";
       buttons.push(`<button class="tag-chip${active}" data-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)} <span>${formatNumber(count)}</span></button>`);
     });
-
     els.tagStrip.innerHTML = buttons.join("");
   }
 
   function renderTagSuggestions() {
     const tags = getTagEntries("count").slice(0, 14);
-    const html = tags.map(([tag, count]) => (
-      `<button class="tag-suggestion" data-suggest-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)} <span>${formatNumber(count)}</span></button>`
-    )).join("");
-
+    const html = tags.map(([tag, count]) => `<button class="tag-suggestion" data-suggest-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)} <span>${formatNumber(count)}</span></button>`).join("");
     els.promptTagSuggestions.innerHTML = html;
     els.jsonTagSuggestions.innerHTML = html;
   }
 
   function getTagEntries(sortMode) {
     const tagCounts = new Map();
-    state.prompts.forEach((prompt) => {
-      prompt.tags.forEach((tag) => {
-        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
-      });
-    });
-
+    state.prompts.forEach((prompt) => { prompt.tags.forEach((tag) => { tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1); }); });
     return [...tagCounts.entries()].sort((a, b) => {
       if (sortMode === "count" && b[1] !== a[1]) return b[1] - a[1];
       return a[0].localeCompare(b[0], "ko");
@@ -1799,49 +2185,19 @@ dialog::backdrop {
     const sizeLabel = isJson
       ? `파일 ${formatBytes(prompt.fileSize || byteLength(prompt.body))}`
       : `본문 ${formatNumber(prompt.body.length)}자`;
+    const copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     const actions = isJson
-      ? `
-              <button class="btn small primary" data-action="download" type="button">다운로드</button>
-              <button class="btn small" data-action="edit" type="button">이름/태그</button>
-              <button class="btn small danger" data-action="delete" type="button">삭제</button>`
-      : `
-              <button class="btn small primary" data-action="copy" type="button">복사</button>
-              <button class="btn small" data-action="view" type="button">보기</button>
-              <button class="btn small" data-action="edit" type="button">수정</button>
-              <button class="btn small danger" data-action="delete" type="button">삭제</button>`;
-
-    return `
-      <article class="prompt-card${favoriteClass}" data-id="${escapeAttribute(prompt.id)}">
-        <div class="card-inner">
-          <div class="card-top">
-            <div class="card-title">
-              <h3>${escapeHtml(prompt.title)}</h3>
-              <div class="card-meta">${meta}</div>
-            </div>
-            <button class="btn icon${prompt.favorite ? " active" : ""}" data-action="favorite" type="button" title="${favoriteTitle}" aria-label="${favoriteTitle}">${favoriteText}</button>
-          </div>
-          <div class="card-tags">${tags}</div>
-          <div class="preview">${escapeHtml(preview)}</div>
-          <div class="card-bottom">
-            <span class="char-count">${sizeLabel}</span>
-            <div class="card-actions">
-${actions}
-            </div>
-          </div>
-        </div>
-      </article>
-    `;
+      ? `<button class="btn small primary" data-action="download" type="button">다운로드</button><button class="btn small" data-action="edit" type="button">이름/태그</button><button class="btn small danger" data-action="delete" type="button">삭제</button>`
+      : `<button class="btn small primary" data-action="copy" type="button">${copyIcon} 복사</button><button class="btn small" data-action="view" type="button">보기</button><button class="btn small" data-action="edit" type="button">수정</button><button class="btn small danger" data-action="delete" type="button">삭제</button>`;
+    return `<article class="prompt-card${favoriteClass}" data-id="${escapeAttribute(prompt.id)}"><div class="card-inner"><div class="card-top"><div class="card-title"><h3>${escapeHtml(prompt.title)}</h3><div class="card-meta">${meta}</div></div><button class="btn icon${prompt.favorite ? " active" : ""}" data-action="favorite" type="button" title="${favoriteTitle}" aria-label="${favoriteTitle}">${favoriteText}</button></div><div class="card-tags">${tags}</div><div class="preview">${escapeHtml(preview)}</div><div class="card-bottom"><span class="char-count">${sizeLabel}</span><div class="card-actions">${actions}</div></div></div></article>`;
   }
 
   function getFilteredPrompts() {
     const query = state.search.toLowerCase();
     const activeTags = state.activeTags.map((tag) => tag.toLowerCase());
-
     return [...state.prompts]
       .filter((prompt) => {
-        const matchesSearch = !query
-          || prompt.title.toLowerCase().includes(query)
-          || prompt.tags.some((tag) => tag.toLowerCase().includes(query));
+        const matchesSearch = !query || prompt.title.toLowerCase().includes(query) || prompt.tags.some((tag) => tag.toLowerCase().includes(query));
         const promptTags = prompt.tags.map((tag) => tag.toLowerCase());
         const matchesTag = !activeTags.length || activeTags.every((tag) => promptTags.includes(tag));
         return matchesSearch && matchesTag;
@@ -1851,54 +2207,137 @@ ${actions}
 
   function sortPrompts(a, b) {
     if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
-
-    if (state.sort === "title") {
-      return a.title.localeCompare(b.title, "ko");
-    }
-
-    if (state.sort === "created") {
-      return dateValue(b.createdAt) - dateValue(a.createdAt);
-    }
-
+    if (state.sort === "title") return a.title.localeCompare(b.title, "ko");
+    if (state.sort === "created") return dateValue(b.createdAt) - dateValue(a.createdAt);
     return dateValue(b.updatedAt) - dateValue(a.updatedAt);
   }
 
   async function copyPrompt(id, button) {
     const prompt = state.prompts.find((item) => item.id === id);
     if (!prompt) return;
-    try {
-      await copyText(prompt.body);
-      flashButton(button, "복사됨");
-      showToast("본문을 복사했습니다.");
-    } catch {
-      showToast("복사하지 못했습니다. 보기에서 본문을 선택해주세요.");
-    }
+    try { await copyText(prompt.body); flashButton(button, "복사됨"); showToast("본문을 복사했습니다."); }
+    catch { showToast("복사하지 못했습니다. 보기에서 본문을 선택해주세요."); }
   }
 
   async function copyViewingPrompt(button) {
     const prompt = state.prompts.find((item) => item.id === state.viewingId);
     if (!prompt) return;
-    try {
-      await copyText(prompt.body);
-      flashButton(button, "복사됨");
-      showToast("본문을 복사했습니다.");
-    } catch {
-      showToast("복사하지 못했습니다. 본문을 선택해주세요.");
+    try { await copyText(prompt.body); flashButton(button, "복사됨"); showToast("본문을 복사했습니다."); }
+    catch { showToast("복사하지 못했습니다. 본문을 선택해주세요."); }
+  }
+
+  function handleTransformInput() {
+    syncTransformInputs();
+    if (state.viewTransform.active) renderViewBody();
+    else updateTransformStatus();
+  }
+
+  function syncTransformInputs() {
+    state.viewTransform.userName = els.replaceUser.value;
+    state.viewTransform.charName = els.replaceChar.value;
+    state.viewTransform.mode = normalizeTransformMode(els.replaceMode.value);
+    saveTransformConfig();
+  }
+
+  function applyPromptTransform() {
+    syncTransformInputs();
+    state.viewTransform.active = true;
+    els.replacePanel.setAttribute("open", "");
+    renderViewBody();
+    showToast("변환 결과를 표시했습니다.");
+  }
+
+  function resetPromptTransform() {
+    state.viewTransform.active = false;
+    state.viewTransform.lastCount = 0;
+    renderViewBody();
+    showToast("원본 본문을 표시합니다.");
+  }
+
+  function toggleReplaceMode() {
+    const modes = ["tokens-to-names", "swap-tokens", "names-to-tokens"];
+    const currentIndex = modes.indexOf(normalizeTransformMode(els.replaceMode.value));
+    els.replaceMode.value = modes[(currentIndex + 1) % modes.length];
+    syncTransformInputs();
+    state.viewTransform.active = true;
+    els.replacePanel.setAttribute("open", "");
+    renderViewBody();
+  }
+
+  async function copyTransformedPrompt(button) {
+    const prompt = getViewingPrompt();
+    if (!prompt) return;
+    syncTransformInputs();
+    const result = getTransformResult(prompt.body);
+    try { await copyText(result.text); flashButton(button, "복사됨"); showToast(`변환 본문을 복사했습니다. ${formatNumber(result.count)}개 변경`); }
+    catch { showToast("복사하지 못했습니다. 변환 결과를 선택해주세요."); }
+  }
+
+  function renderViewBody() {
+    const prompt = getViewingPrompt();
+    if (!prompt) return;
+    const result = state.viewTransform.active ? getTransformResult(prompt.body) : { text: prompt.body, count: 0 };
+    state.viewTransform.lastCount = result.count;
+    els.viewBody.textContent = result.text;
+    els.viewCounter.textContent = `${formatNumber(result.text.length)}자`;
+    updateTransformStatus();
+  }
+
+  function getViewingPrompt() { return state.prompts.find((item) => item.id === state.viewingId); }
+
+  function getTransformResult(body) {
+    let text = String(body || "");
+    let count = 0;
+    const userName = state.viewTransform.userName.trim();
+    const charName = state.viewTransform.charName.trim();
+    if (state.viewTransform.mode === "swap-tokens") {
+      text = text.replace(/\{\{\s*(user|char)\s*\}\}/gi, (match, token) => { count += 1; return token.toLowerCase() === "user" ? "{{char}}" : "{{user}}"; });
+      return { text, count };
     }
+    if (state.viewTransform.mode === "names-to-tokens") {
+      const rules = [{ find: userName, replacement: "{{user}}" }, { find: charName, replacement: "{{char}}" }].filter((rule) => rule.find).sort((a, b) => b.find.length - a.find.length);
+      const seen = new Set();
+      rules.forEach((rule) => {
+        const key = rule.find.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        const result = replaceWithCount(text, new RegExp(escapeRegExp(rule.find), "g"), rule.replacement);
+        text = result.text; count += result.count;
+      });
+      return { text, count };
+    }
+    text = text.replace(/\{\{\s*(user|char)\s*\}\}/gi, (match, token) => {
+      const replacement = token.toLowerCase() === "user" ? userName : charName;
+      if (!replacement) return match;
+      count += 1; return replacement;
+    });
+    return { text, count };
+  }
+
+  function replaceWithCount(text, pattern, replacement) {
+    let count = 0;
+    return { text: text.replace(pattern, () => { count += 1; return replacement; }), count };
+  }
+
+  function updateTransformStatus() {
+    const modeLabels = { "tokens-to-names": "토큰 → 지정 글자", "swap-tokens": "{{user}} ↔ {{char}}", "names-to-tokens": "지정 글자 → 토큰" };
+    const modeLabel = modeLabels[state.viewTransform.mode] || modeLabels["tokens-to-names"];
+    const viewLabel = state.viewTransform.active ? `변환 ${formatNumber(state.viewTransform.lastCount)}개` : "원본 보기";
+    els.replaceStatus.textContent = `${viewLabel} · ${modeLabel}`;
+  }
+
+  function normalizeTransformMode(mode) {
+    return ["tokens-to-names", "swap-tokens", "names-to-tokens"].includes(mode) ? mode : "tokens-to-names";
   }
 
   function downloadJsonPrompt(id) {
     const prompt = state.prompts.find((item) => item.id === id);
     if (!prompt || prompt.kind !== "json") return;
-
     const blob = new Blob([prompt.body], { type: prompt.mimeType || "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
-    link.download = makeJsonDownloadName(prompt);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    link.href = url; link.download = makeJsonDownloadName(prompt);
+    document.body.appendChild(link); link.click(); link.remove();
     URL.revokeObjectURL(url);
     showToast("JSON 파일을 다운로드했습니다.");
   }
@@ -1906,122 +2345,85 @@ ${actions}
   function openPrompt(id) {
     const prompt = state.prompts.find((item) => item.id === id);
     if (!prompt) return;
-
     state.viewingId = id;
+    state.viewTransform.active = false;
+    state.viewTransform.lastCount = 0;
     els.viewTitle.textContent = prompt.title;
     els.viewMeta.textContent = `저장 ${formatDate(prompt.createdAt)} · 수정 ${formatDate(prompt.updatedAt)}`;
-    els.viewBody.textContent = prompt.body;
-    els.viewCounter.textContent = `${formatNumber(prompt.body.length)}자`;
     els.viewTags.innerHTML = prompt.tags.map((tag) => `<span class="card-tag">${escapeHtml(tag)}</span>`).join("");
-
-    if (typeof els.dialog.showModal === "function") {
-      els.dialog.showModal();
-    } else {
-      els.dialog.setAttribute("open", "");
-    }
+    renderViewBody();
+    if (typeof els.dialog.showModal === "function") els.dialog.showModal();
+    else els.dialog.setAttribute("open", "");
   }
 
   function startEdit(id) {
     const prompt = state.prompts.find((item) => item.id === id);
     if (!prompt) return;
-
     if (prompt.kind === "json") {
       state.pendingJsonFile = null;
       state.jsonEditingId = id;
-      openJsonDialog({
-        title: prompt.title,
-        tags: prompt.tags.join(", "),
-        fileName: prompt.fileName || makeJsonDownloadName(prompt),
-        fileSize: prompt.fileSize || byteLength(prompt.body),
-        mode: "edit"
-      });
+      openJsonDialog({ title: prompt.title, tags: prompt.tags.join(", "), fileName: prompt.fileName || makeJsonDownloadName(prompt), fileSize: prompt.fileSize || byteLength(prompt.body), mode: "edit" });
       return;
     }
-
     state.editingId = id;
     els.composerDetails.setAttribute("open", "");
     els.editorTitle.textContent = "항목 수정";
-    els.saveBtn.textContent = "수정 저장";
+    els.saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 수정 저장';
     els.title.value = prompt.title;
     els.tags.value = prompt.tags.join(", ");
     els.body.value = prompt.body;
     updateBodyCounter();
     els.title.focus();
-    document.querySelector(".composer").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function removePrompt(id) {
     const prompt = state.prompts.find((item) => item.id === id);
     if (!prompt) return;
-
     if (!confirm(`"${prompt.title}" 항목을 삭제할까요?`)) return;
-
+    const deletedAt = new Date().toISOString();
+    moveToTrash([prompt], deletedAt);
+    markDeleted([id], deletedAt);
     await deletePrompt(id);
     if (state.editingId === id) resetForm();
-    await loadPrompts();
-    render();
-    showToast("삭제했습니다.");
-    scheduleGithubAutoSave();
+    await loadPrompts(); render();
+    showToast("삭제했습니다."); scheduleGithubAutoSave();
   }
 
   async function toggleFavorite(id) {
     const prompt = state.prompts.find((item) => item.id === id);
     if (!prompt) return;
-
     prompt.favorite = !prompt.favorite;
     prompt.updatedAt = new Date().toISOString();
-    await putPrompt(prompt);
-    await loadPrompts();
-    render();
-    scheduleGithubAutoSave();
+    await putPrompt(prompt); await loadPrompts(); render(); scheduleGithubAutoSave();
   }
 
   function parseTags(value) {
-    const seen = new Set();
-    const tags = [];
-
-    String(value || "")
-      .split(",")
-      .map((tag) => tag.trim().replace(/\s+/g, " "))
-      .filter(Boolean)
-      .forEach((tag) => {
-        const key = tag.toLowerCase();
-        if (!seen.has(key)) {
-          seen.add(key);
-          tags.push(tag);
-        }
-      });
-
+    const seen = new Set(); const tags = [];
+    String(value || "").split(",").map((tag) => tag.trim().replace(/\s+/g, " ")).filter(Boolean).forEach((tag) => {
+      const key = tag.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); tags.push(tag); }
+    });
     return tags;
   }
 
   function appendTagToInput(input, tag) {
     const cleanTag = String(tag || "").trim();
     if (!cleanTag) return;
-
     const tags = parseTags(input.value);
-    if (!tags.some((item) => item.toLowerCase() === cleanTag.toLowerCase())) {
-      tags.push(cleanTag);
-    }
+    if (!tags.some((item) => item.toLowerCase() === cleanTag.toLowerCase())) tags.push(cleanTag);
     input.value = tags.join(", ");
     input.focus();
   }
 
   function sanitizePrompt(raw) {
     if (!raw || typeof raw !== "object") return null;
-
     const now = new Date().toISOString();
     const title = String(raw.title || "제목 없음").trim() || "제목 없음";
     const body = String(raw.body || "");
     const tags = Array.isArray(raw.tags) ? parseTags(raw.tags.join(",")) : parseTags(raw.tags);
     const kind = raw.kind === "json" || raw.type === "json" ? "json" : "text";
-
     return {
-      id: String(raw.id || createId()),
-      kind,
-      title,
-      body,
-      tags,
+      id: String(raw.id || createId()), kind, title, body, tags,
       favorite: Boolean(raw.favorite),
       fileName: kind === "json" ? String(raw.fileName || raw.name || `${title}.json`) : "",
       mimeType: kind === "json" ? String(raw.mimeType || "application/json") : "",
@@ -2042,19 +2444,16 @@ ${actions}
 
   async function exportPrompts() {
     const payload = {
-      app: "prompt-vault",
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      items: state.prompts
+      app: "prompt-vault", appVersion: APP_VERSION, version: DATA_VERSION,
+      exportedAt: new Date().toISOString(), items: state.prompts,
+      deletedItems: sortDeletedItems(state.deletedItems),
+      trashItems: sortTrashItems(state.trashItems)
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
-    link.download = `prompt-vault-backup-${makeDateStamp()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    link.href = url; link.download = `prompt-vault-backup-${makeDateStamp()}.json`;
+    document.body.appendChild(link); link.click(); link.remove();
     URL.revokeObjectURL(url);
     showToast("백업 파일을 만들었습니다.");
   }
@@ -2062,71 +2461,39 @@ ${actions}
   async function importPrompts(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-
     try {
       const text = await file.text();
       const parsed = JSON.parse(text);
       const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
-
-      if (!Array.isArray(rawItems)) {
-        showToast("백업 JSON 파일이 아닙니다. 일반 JSON은 JSON 추가를 사용해주세요.");
-        return;
-      }
-
+      if (!Array.isArray(rawItems)) { showToast("백업 JSON 파일이 아닙니다. 일반 JSON은 JSON 추가를 사용해주세요."); return; }
       const fingerprints = new Set(state.prompts.map(fingerprintPrompt));
       const imported = [];
       let skipped = 0;
-
       rawItems.forEach((raw) => {
         const item = sanitizeImportedPrompt(raw);
-        if (!item || !item.body.trim()) {
-          skipped += 1;
-          return;
-        }
+        if (!item || !item.body.trim()) { skipped += 1; return; }
         const fingerprint = fingerprintPrompt(item);
-        if (fingerprints.has(fingerprint)) {
-          skipped += 1;
-          return;
-        }
-        fingerprints.add(fingerprint);
-        imported.push(item);
+        if (fingerprints.has(fingerprint)) { skipped += 1; return; }
+        fingerprints.add(fingerprint); imported.push(item);
       });
-
-      if (!imported.length) {
-        showToast(skipped ? "새로 추가할 항목이 없습니다." : "불러올 항목이 없습니다.");
-        return;
-      }
-
-      await putPrompts(imported);
-      await loadPrompts();
-      render();
-      showToast(`${formatNumber(imported.length)}개를 불러왔습니다.`);
-      scheduleGithubAutoSave();
+      if (!imported.length) { showToast(skipped ? "새로 추가할 항목이 없습니다." : "불러올 항목이 없습니다."); return; }
+      await putPrompts(imported); await loadPrompts(); render();
+      showToast(`${formatNumber(imported.length)}개를 불러왔습니다.`); scheduleGithubAutoSave();
     } catch (error) {
-      console.error(error);
-      showToast("JSON 파일을 읽지 못했습니다.");
-    } finally {
-      event.target.value = "";
-    }
+      console.error(error); showToast("JSON 파일을 읽지 못했습니다.");
+    } finally { event.target.value = ""; }
   }
 
   async function clearAllPrompts() {
-    if (!state.prompts.length) {
-      showToast("삭제할 항목이 없습니다.");
-      return;
-    }
-
+    if (!state.prompts.length) { showToast("삭제할 항목이 없습니다."); return; }
     if (!confirm(`저장된 ${state.prompts.length}개 항목을 모두 삭제할까요?`)) return;
-
-    await clearStore();
-    resetForm();
-    state.activeTags = [];
-    state.search = "";
-    els.search.value = "";
-    await loadPrompts();
-    render();
-    showToast("모든 항목을 삭제했습니다.");
-    scheduleGithubAutoSave();
+    const deletedAt = new Date().toISOString();
+    moveToTrash(state.prompts, deletedAt);
+    markDeleted(state.prompts.map((prompt) => prompt.id), deletedAt);
+    await clearStore(); resetForm();
+    state.activeTags = []; state.search = ""; els.search.value = "";
+    await loadPrompts(); render();
+    showToast("모든 항목을 삭제했습니다."); scheduleGithubAutoSave();
   }
 
   function makePreview(body) {
@@ -2135,9 +2502,7 @@ ${actions}
     return trimmed.length > PREVIEW_LIMIT ? `${trimmed.slice(0, PREVIEW_LIMIT)}...` : trimmed;
   }
 
-  function stripJsonExtension(fileName) {
-    return String(fileName || "data.json").replace(/\.json$/i, "");
-  }
+  function stripJsonExtension(fileName) { return String(fileName || "data.json").replace(/\.json$/i, ""); }
 
   function makeJsonDownloadName(prompt) {
     const baseName = sanitizeFileName(prompt.title || prompt.fileName || "data");
@@ -2145,23 +2510,15 @@ ${actions}
   }
 
   function sanitizeFileName(value) {
-    const cleaned = String(value || "data")
-      .trim()
-      .replace(/[\\/:*?"<>|]/g, "_")
-      .replace(/\s+/g, " ");
+    const cleaned = String(value || "data").trim().replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, " ");
     return cleaned || "data";
   }
 
-  function byteLength(text) {
-    return new Blob([String(text || "")]).size;
-  }
+  function byteLength(text) { return new Blob([String(text || "")]).size; }
 
   function encodeBase64(text) {
     const bytes = new TextEncoder().encode(String(text || ""));
-    let binary = "";
-    bytes.forEach((byte) => {
-      binary += String.fromCharCode(byte);
-    });
+    let binary = ""; bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
     return btoa(binary);
   }
 
@@ -2173,21 +2530,12 @@ ${actions}
 
   async function copyText(text) {
     if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(text);
-        return;
-      } catch {
-        // Fall back for file:// previews and browsers with stricter clipboard permission prompts.
-      }
+      try { await navigator.clipboard.writeText(text); return; } catch {}
     }
-
     const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.setAttribute("readonly", "");
-    textarea.style.position = "fixed";
-    textarea.style.top = "-9999px";
-    document.body.appendChild(textarea);
-    textarea.select();
+    textarea.value = text; textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed"; textarea.style.top = "-9999px";
+    document.body.appendChild(textarea); textarea.select();
     const copied = document.execCommand("copy");
     textarea.remove();
     if (!copied) throw new Error("copy failed");
@@ -2195,40 +2543,26 @@ ${actions}
 
   function flashButton(button, text) {
     if (!button) return;
-    const original = button.textContent;
+    const original = button.innerHTML;
     button.textContent = text;
     button.disabled = true;
-    window.setTimeout(() => {
-      button.textContent = original;
-      button.disabled = false;
-    }, 900);
+    window.setTimeout(() => { button.innerHTML = original; button.disabled = false; }, 900);
   }
 
   async function updateStorageInfo() {
-    if (!navigator.storage || !navigator.storage.estimate) {
-      els.storageInfo.textContent = "브라우저 저장소";
-      return;
-    }
-
+    if (!navigator.storage || !navigator.storage.estimate) { els.storageInfo.textContent = "브라우저 저장소"; return; }
     try {
       const estimate = await navigator.storage.estimate();
-      const usage = estimate.usage || 0;
-      const quota = estimate.quota || 0;
-      els.storageInfo.textContent = quota
-        ? `${formatBytes(usage)} / ${formatBytes(quota)}`
-        : formatBytes(usage);
-    } catch {
-      els.storageInfo.textContent = "브라우저 저장소";
-    }
+      const usage = estimate.usage || 0; const quota = estimate.quota || 0;
+      els.storageInfo.textContent = quota ? `${formatBytes(usage)} / ${formatBytes(quota)}` : formatBytes(usage);
+    } catch { els.storageInfo.textContent = "브라우저 저장소"; }
   }
 
   function showToast(message) {
     window.clearTimeout(state.toastTimer);
     els.toast.textContent = message;
     els.toast.classList.add("show");
-    state.toastTimer = window.setTimeout(() => {
-      els.toast.classList.remove("show");
-    }, 1800);
+    state.toastTimer = window.setTimeout(() => { els.toast.classList.remove("show"); }, 1800);
   }
 
   function createId() {
@@ -2236,34 +2570,30 @@ ${actions}
     return `prompt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
-  function fingerprintPrompt(prompt) {
-    return `${prompt.kind || "text"}::${prompt.title.trim().toLowerCase()}::${prompt.body.trim()}`;
+  function fingerprintPrompt(prompt) { return `${prompt.kind || "text"}::${prompt.title.trim().toLowerCase()}::${prompt.body.trim()}`; }
+
+  function dateValue(value) { const time = new Date(value).getTime(); return Number.isFinite(time) ? time : 0; }
+
+  function compareVersions(current, required) {
+    const currentParts = String(current || "0").split(".").map((part) => Number(part) || 0);
+    const requiredParts = String(required || "0").split(".").map((part) => Number(part) || 0);
+    const length = Math.max(currentParts.length, requiredParts.length);
+    for (let index = 0; index < length; index += 1) {
+      const diff = (currentParts[index] || 0) - (requiredParts[index] || 0);
+      if (diff !== 0) return diff;
+    }
+    return 0;
   }
 
-  function dateValue(value) {
-    const time = new Date(value).getTime();
-    return Number.isFinite(time) ? time : 0;
-  }
-
-  function isValidDate(value) {
-    return value && Number.isFinite(new Date(value).getTime());
-  }
+  function isValidDate(value) { return value && Number.isFinite(new Date(value).getTime()); }
 
   function formatDate(value) {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) return "-";
-    return date.toLocaleString("ko-KR", {
-      year: "2-digit",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    return date.toLocaleString("ko-KR", { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
   }
 
-  function formatNumber(value) {
-    return new Intl.NumberFormat("ko-KR").format(value);
-  }
+  function formatNumber(value) { return new Intl.NumberFormat("ko-KR").format(value); }
 
   function formatBytes(bytes) {
     if (!bytes) return "0 B";
@@ -2280,17 +2610,12 @@ ${actions}
   }
 
   function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  function escapeAttribute(value) {
-    return escapeHtml(value).replace(/`/g, "&#096;");
-  }
+  function escapeRegExp(value) { return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+  function escapeAttribute(value) { return escapeHtml(value).replace(/`/g, "&#096;"); }
 })();
 </script>
 </body>
