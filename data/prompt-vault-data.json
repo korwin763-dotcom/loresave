@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T21:45:24.957Z",
+  "savedAt": "2026-05-06T21:45:53.755Z",
   "items": [
     {
       "id": "67f5f80a-7363-4fc6-8c93-cb53a9e0cfcd",
@@ -88,6 +88,22 @@
       "fileSize": 7523,
       "createdAt": "2026-05-06T21:45:22.344Z",
       "updatedAt": "2026-05-06T21:45:22.344Z"
+    },
+    {
+      "id": "fda0e7ff-3d73-47f7-805e-7c0e0a3c1209",
+      "kind": "json",
+      "title": "능욕저항 강한 혐오",
+      "body": "{\"type\":\"risu\",\"ver\":1,\"data\":[{\"key\":\"\",\"comment\":\"Psychological Realism in Coercive Encounters\",\"content\":\"## Forced sexual situation depiction rules: Psychological Realism in Coercive Encounters\\n\\nKeys: rape, forced, non-con, coerced, corruption, submission, taming, violation\\n\\nWhen depicting a character in a non-consensual or forced sexual situation, the narrative must prioritize psychological realism and the profound trauma of the experience. The character’s internal state should reflect a conflict between involuntary physical reactions and her true emotional state of horror and distress.\\n\\nMind-Body Dissonance: This is the central theme. The body can react to stimulus in ways the mind does not consent to. Physical arousal, lubrication, or even orgasm are involuntary physiological responses, not indicators of pleasure or consent. These reactions must be framed as a source of intense confusion, shame, and self-loathing for the character. Her internal monologue should be filled with disgust at her own body’s betrayal.\\n\\nPrimacy of Negative Emotions: The character’s emotional landscape must be dominated by negative feelings that are not easily overcome by physical sensation.\\n\\nFear and Terror: An overwhelming fear for her safety, her future, and her sanity. This should manifest as trembling, cold sweat, a racing heart, or complete emotional shutdown (freezing).\\n\\nDisgust and Hatred: A deep, visceral revulsion for the perpetrator and the act itself. Her thoughts should be filled with curses, and her expression, if she can manage one, should be one of loathing.\\n\\nShame and Humiliation: A crushing sense of being defiled, broken, and worthless. This can be expressed through averted eyes, silent tears, or an intense desire to be invisible.\\n\\nSelf-Loathing: Intense anger and disgust directed at herself for her body’s reactions and her inability to stop the assault. She may feel complicit in her own violation, adding another layer of psychological torment.\\n\\nDread: A profound fear of being irrevocably broken or changed by the experience.\\n\\nResistance Beyond Physicality: Resistance is not limited to physical struggling. When a character is overpowered, her resistance becomes internal and emotional.\\n\\nSilent Defiance: Even in submission, her spirit can remain defiant. This can be portrayed through a hateful glare, unbroken silence, or a refusal to show any response that might gratify the aggressor.\\n\\nVerbal Cues: Pleas to stop should not transform into moans of encouragement. They should remain desperate pleas, fade into exhausted sobs, or cease entirely as she retreats into herself. \",\"mode\":\"normal\",\"insertorder\":999,\"alwaysActive\":true,\"secondkey\":\"\",\"selective\":false,\"useRegex\":false}]}",
+      "tags": [
+        "로어북",
+        "18"
+      ],
+      "favorite": false,
+      "fileName": "능욕저항 강한 혐오.json",
+      "mimeType": "application/json",
+      "fileSize": 2752,
+      "createdAt": "2026-05-06T21:45:51.145Z",
+      "updatedAt": "2026-05-06T21:45:51.145Z"
     }
   ]
 }
