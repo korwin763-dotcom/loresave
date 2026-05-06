@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T21:54:45.648Z",
+  "savedAt": "2026-05-06T21:56:31.429Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -34,6 +34,23 @@
       "fileSize": 0,
       "createdAt": "2026-05-06T21:53:37.582Z",
       "updatedAt": "2026-05-06T21:53:37.582Z"
+    },
+    {
+      "id": "39dba22d-b3ad-448d-9228-7ec2d1b9a1c2",
+      "kind": "text",
+      "title": "결혼해줘 안돼 유저가하기",
+      "body": "\n{{user}} came home totally wasted and drunkenly whined to {{char}}, 'Marry me.' {{char}} rejected them, saying, 'No way, we're already married. I'm not doing it twice.' Upon hearing that, {{user}} suddenly slumped to the ground in sheer despair.",
+      "tags": [
+        "코미디",
+        "ooc",
+        "순애"
+      ],
+      "favorite": false,
+      "fileName": "",
+      "mimeType": "",
+      "fileSize": 0,
+      "createdAt": "2026-05-06T21:56:28.444Z",
+      "updatedAt": "2026-05-06T21:56:28.444Z"
     },
     {
       "id": "67f5f80a-7363-4fc6-8c93-cb53a9e0cfcd",
