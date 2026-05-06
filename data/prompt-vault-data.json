@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T21:58:11.287Z",
+  "savedAt": "2026-05-06T21:58:30.302Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -163,12 +163,12 @@
         "크리틱",
         "ooc"
       ],
-      "favorite": true,
+      "favorite": false,
       "fileName": "",
       "mimeType": "",
       "fileSize": 0,
       "createdAt": "2026-05-06T21:58:01.270Z",
-      "updatedAt": "2026-05-06T21:58:08.666Z"
+      "updatedAt": "2026-05-06T21:58:27.386Z"
     },
     {
       "id": "bed92a0c-4d5a-4ad4-b367-363a683a68cf",
