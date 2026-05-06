@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T22:00:00.557Z",
+  "savedAt": "2026-05-06T22:12:05.160Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -51,6 +51,22 @@
       "fileSize": 0,
       "createdAt": "2026-05-06T21:59:57.012Z",
       "updatedAt": "2026-05-06T21:59:57.012Z"
+    },
+    {
+      "id": "2012773d-4094-4792-9813-b5ddf983185b",
+      "kind": "text",
+      "title": "영화 취향 공유",
+      "body": "### [Scenario Setting for Sharing Movie Tastes]\n\n(OOC: Currently pausing the ongoing roleplay. Please write a short story based on the details below. Create a compelling story based on each character's personality, behavioral patterns, and their memories so far.)\n\n Narrative: You must write a single short story based on the guidelines below. Rather than simply listing responses to the questions, you must describe a natural, singular narrative.\n\n{{user}} and {{char}} talk about the movies they love together. For what reason do they start talking about movies?\n\n 1. Sharing {{user}}'s movie list\n   {{user}} shows a list of n movies they love.\n\n * Movie list: (Delete this part and write the movie titles. If they are not famous, adding a brief explanation next to the title is recommended)\n\n * What does {{char}} think about this movie list? Which movies among them does {{char}} know, and which ones are unknown? Judge based on various information about the character.\n\n * {{user}} explains the movies they like.\n * In what tone does {{user}} talk about their favorite movies? (Various and realistic attitudes suitable for the character, such as calmly, slightly excitedly, pretending to be annoyed, etc.)\n\n * What information does {{user}} show together? (Reviews written by themselves, official plots or trailers of the movies, reviews that pierce through the movies, etc.)\n\n * What does {{char}} honestly and specifically think about {{user}}'s movie taste?\n\n * How much of what {{char}} thought is actually spoken aloud? What is {{char}}'s attitude during the evaluation?\n\n * How does {{user}} react to {{char}}'s evaluation?\n\n 2. Sharing {{char}}'s movie list\n   This time, {{user}} asks for {{char}}'s beloved movies. How many beloved movies does {{char}} mention?\n\n * Movie list: (Write movie titles that match {{char}}'s personality in this part)\n\n * What does {{user}} think about this movie list? Which movies among them does {{user}} know, and which ones are unknown? Judge based on various information about the character.\n * {{char}} explains the movies they like.\n\n * In what tone does {{char}} talk about their favorite movies? (Various and realistic attitudes suitable for the character, such as calmly, slightly excitedly, pretending to be annoyed, etc.)\n\n * What information does {{char}} show together? (Reviews written by themselves, official plots or trailers of the movies, reviews that pierce through the movies, etc.)\n\n * What does {{user}} honestly and specifically think about {{char}}'s movie taste?\n\n * How much of what {{user}} thought is actually spoken aloud? What is {{user}}'s attitude during the evaluation?\n\n * How does {{char}} react to {{user}}'s evaluation?\n\n 3. Conclusion\n   After the conversation ends, which movie do the two decide to watch together first? What is the reason for choosing that movie?",
+      "tags": [
+        "ooc",
+        "일상"
+      ],
+      "favorite": false,
+      "fileName": "",
+      "mimeType": "",
+      "fileSize": 0,
+      "createdAt": "2026-05-06T22:12:01.781Z",
+      "updatedAt": "2026-05-06T22:12:01.781Z"
     },
     {
       "id": "27326166-9112-476c-8890-d902ef8ec91c",
