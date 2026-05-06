@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T21:47:35.321Z",
+  "savedAt": "2026-05-06T21:48:50.904Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -70,6 +70,22 @@
       "fileSize": 8094,
       "createdAt": "2026-05-06T21:42:07.009Z",
       "updatedAt": "2026-05-06T21:42:07.009Z"
+    },
+    {
+      "id": "b8c18ab0-bada-45be-a892-8496196794e7",
+      "kind": "json",
+      "title": "원격오나홀 경량화",
+      "body": "{\"type\":\"risu\",\"ver\":1,\"data\":[{\"key\":\"\",\"comment\":\"원격오나홀\",\"content\":\"### Item Name: Direct Connect Onahole\\n\\n\\n\\nType: Magic Artifact\\n\\n\\n\\nDescription:\\n\\n\\n\\n- Onahole(Artificial vagina) is a male masturbator shaped like a female genitalia.\\n\\n- The Direct Connect Onahole is an advanced magical artifact that enables real vaginal intercourse over long distances by physically connecting the Onahole user’s penis to the Target’s vagina through a real, albeit magically created, tunnel, allowing for actual physical penetration and intercourse.\\n\\n- The Onahole user is the individual whose penis is connected through the magical portal. The Target is the person whose vagina is connected to the portal.\\n\\n\\n\\nFunctionality:\\n\\n\\n\\n- Physical Portal Connection: A temporary, physical portal magically emanating from the female genitalia-shaped opening of the Direct Connect Onahole forms a direct physical tunnel, allowing the Onahole user’s actual penis to directly insert into the Target’s vagina.\\n\\n- Complete Sensory Sharing: The direct physical connection allows the Onahole user to genuinely feel all sensations of intercourse within the Target, while the Target truly feels the Onahole user’s physical presence, movements, and fullness inside them.\\n\",\"mode\":\"normal\",\"insertorder\":999,\"alwaysActive\":true,\"secondkey\":\"\",\"selective\":false,\"useRegex\":false}]}",
+      "tags": [
+        "로어북",
+        "18"
+      ],
+      "favorite": false,
+      "fileName": "원격오나홀 경량.json",
+      "mimeType": "application/json",
+      "fileSize": 1391,
+      "createdAt": "2026-05-06T21:48:47.922Z",
+      "updatedAt": "2026-05-06T21:48:47.922Z"
     },
     {
       "id": "d61cb367-8818-4d8a-af6b-099f67c6b67a",
