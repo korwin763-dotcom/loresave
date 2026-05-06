@@ -384,6 +384,38 @@ select:focus-visible {
   margin-top: 12px;
 }
 
+.tag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.tag-suggestion {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tag-suggestion:hover {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: #98d2ca;
+}
+
+.tag-suggestion span {
+  color: var(--faint);
+}
+
 .tag-chip,
 .card-tag {
   display: inline-flex;
@@ -837,6 +869,7 @@ dialog::backdrop {
         <div class="field">
           <label for="tagInput">태그</label>
           <input id="tagInput" type="text" autocomplete="off" placeholder="ooc, novel, lorebook" />
+          <div class="tag-suggestions" id="promptTagSuggestions"></div>
         </div>
         <div class="field">
           <label for="bodyInput">본문</label>
@@ -891,6 +924,7 @@ dialog::backdrop {
         <div class="field">
           <label for="jsonTagInput">태그</label>
           <input id="jsonTagInput" type="text" autocomplete="off" placeholder="lorebook, character, json" />
+          <div class="tag-suggestions" id="jsonTagSuggestions"></div>
         </div>
       </div>
     </div>
@@ -943,6 +977,7 @@ dialog::backdrop {
     form: $("#promptForm"),
     title: $("#titleInput"),
     tags: $("#tagInput"),
+    promptTagSuggestions: $("#promptTagSuggestions"),
     body: $("#bodyInput"),
     bodyCounter: $("#bodyCounter"),
     saveBtn: $("#saveBtn"),
@@ -976,6 +1011,7 @@ dialog::backdrop {
     jsonFileInfo: $("#jsonFileInfo"),
     jsonTitle: $("#jsonTitleInput"),
     jsonTags: $("#jsonTagInput"),
+    jsonTagSuggestions: $("#jsonTagSuggestions"),
     jsonDialogMeta: $("#jsonDialogMeta"),
     cancelJson: $("#cancelJsonBtn"),
     cancelJsonFoot: $("#cancelJsonFootBtn"),
@@ -1030,6 +1066,8 @@ dialog::backdrop {
     els.loadGithub.addEventListener("click", loadFromGithub);
     els.saveGithub.addEventListener("click", () => saveToGithub({ manual: true }));
     els.tagStrip.addEventListener("click", handleTagClick);
+    els.promptTagSuggestions.addEventListener("click", (event) => handleTagSuggestionClick(event, els.tags));
+    els.jsonTagSuggestions.addEventListener("click", (event) => handleTagSuggestionClick(event, els.jsonTags));
     els.list.addEventListener("click", handleListClick);
     els.addJsonBtn.addEventListener("click", () => els.jsonFileInput.click());
     els.jsonFileInput.addEventListener("change", handleJsonFileSelect);
@@ -1558,6 +1596,12 @@ dialog::backdrop {
     render();
   }
 
+  function handleTagSuggestionClick(event, input) {
+    const button = event.target.closest("[data-suggest-tag]");
+    if (!button) return;
+    appendTagToInput(input, button.dataset.suggestTag || "");
+  }
+
   async function handleListClick(event) {
     const tagButton = event.target.closest("[data-card-tag]");
     if (tagButton) {
@@ -1593,6 +1637,7 @@ dialog::backdrop {
 
   function render() {
     renderTags();
+    renderTagSuggestions();
     const filtered = getFilteredPrompts();
 
     els.resultCount.textContent = `${formatNumber(filtered.length)} / ${formatNumber(state.prompts.length)}개`;
@@ -1625,14 +1670,7 @@ dialog::backdrop {
   }
 
   function renderTags() {
-    const tagCounts = new Map();
-    state.prompts.forEach((prompt) => {
-      prompt.tags.forEach((tag) => {
-        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
-      });
-    });
-
-    const tags = [...tagCounts.entries()].sort((a, b) => a[0].localeCompare(b[0], "ko"));
+    const tags = getTagEntries("name");
     const allClass = state.activeTag ? "tag-chip" : "tag-chip active";
     const buttons = [
       `<button class="${allClass}" data-tag="" type="button">전체 <span>${formatNumber(state.prompts.length)}</span></button>`
@@ -1644,6 +1682,30 @@ dialog::backdrop {
     });
 
     els.tagStrip.innerHTML = buttons.join("");
+  }
+
+  function renderTagSuggestions() {
+    const tags = getTagEntries("count").slice(0, 14);
+    const html = tags.map(([tag, count]) => (
+      `<button class="tag-suggestion" data-suggest-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)} <span>${formatNumber(count)}</span></button>`
+    )).join("");
+
+    els.promptTagSuggestions.innerHTML = html;
+    els.jsonTagSuggestions.innerHTML = html;
+  }
+
+  function getTagEntries(sortMode) {
+    const tagCounts = new Map();
+    state.prompts.forEach((prompt) => {
+      prompt.tags.forEach((tag) => {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      });
+    });
+
+    return [...tagCounts.entries()].sort((a, b) => {
+      if (sortMode === "count" && b[1] !== a[1]) return b[1] - a[1];
+      return a[0].localeCompare(b[0], "ko");
+    });
   }
 
   function renderCard(prompt) {
@@ -1858,6 +1920,18 @@ ${actions}
       });
 
     return tags;
+  }
+
+  function appendTagToInput(input, tag) {
+    const cleanTag = String(tag || "").trim();
+    if (!cleanTag) return;
+
+    const tags = parseTags(input.value);
+    if (!tags.some((item) => item.toLowerCase() === cleanTag.toLowerCase())) {
+      tags.push(cleanTag);
+    }
+    input.value = tags.join(", ");
+    input.focus();
   }
 
   function sanitizePrompt(raw) {
