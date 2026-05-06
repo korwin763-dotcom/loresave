@@ -101,6 +101,7 @@ select:focus-visible {
 .shell {
   display: grid;
   grid-template-columns: 392px minmax(0, 1fr);
+  grid-template-areas: "composer main";
   gap: 18px;
   align-items: start;
 }
@@ -114,7 +115,7 @@ select:focus-visible {
 }
 
 .composer {
-  grid-column: 1;
+  grid-area: composer;
   position: sticky;
   top: 18px;
   overflow: hidden;
@@ -266,7 +267,7 @@ select:focus-visible {
 }
 
 .main {
-  grid-column: 2;
+  grid-area: main;
   display: grid;
   gap: 12px;
 }
@@ -276,6 +277,58 @@ select:focus-visible {
 }
 
 .sync-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.sync-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sync-summary::-webkit-details-marker {
+  display: none;
+}
+
+.sync-summary::after {
+  content: "펼치기";
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sync-panel[open] .sync-summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.sync-panel[open] .sync-summary::after {
+  content: "접기";
+}
+
+.sync-title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sync-summary-status {
+  min-width: 0;
+  flex: 1;
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.sync-body {
   padding: 14px;
 }
 
@@ -613,15 +666,16 @@ dialog::backdrop {
 @media (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "main"
+      "composer";
   }
 
   .main {
-    grid-column: 1;
     order: 1;
   }
 
   .composer {
-    grid-column: 1;
     order: 2;
     position: static;
   }
@@ -710,7 +764,12 @@ dialog::backdrop {
 
   <main class="shell">
     <section class="main" aria-label="프롬프트 목록">
-      <div class="panel sync-panel" aria-label="GitHub 동기화">
+      <details class="panel sync-panel" id="githubSyncDetails">
+        <summary class="sync-summary">
+          <span class="sync-title">GitHub 동기화</span>
+          <span class="sync-summary-status" id="githubSummaryStatus">미연결</span>
+        </summary>
+        <div class="sync-body">
         <div class="sync-grid">
           <div class="field">
             <label for="githubOwnerInput">Owner</label>
@@ -739,7 +798,8 @@ dialog::backdrop {
           <button class="btn primary" id="saveGithubBtn" type="button">GitHub에 저장</button>
         </div>
         <div class="sync-status" id="githubStatus">GitHub 저장소를 연결하면 여러 기기에서 같은 데이터를 쓸 수 있습니다.</div>
-      </div>
+        </div>
+      </details>
 
       <div class="panel search-panel">
         <div class="search-row">
@@ -895,6 +955,7 @@ dialog::backdrop {
     githubPath: $("#githubPathInput"),
     githubToken: $("#githubTokenInput"),
     githubStatus: $("#githubStatus"),
+    githubSummaryStatus: $("#githubSummaryStatus"),
     saveGithubConfig: $("#saveGithubConfigBtn"),
     loadGithub: $("#loadGithubBtn"),
     saveGithub: $("#saveGithubBtn"),
@@ -1106,14 +1167,17 @@ dialog::backdrop {
   function updateGithubStatus(message) {
     if (message) {
       els.githubStatus.textContent = message;
+      els.githubSummaryStatus.textContent = message;
       return;
     }
 
     const config = state.githubConfig || {};
     if (config.owner && config.repo && config.path) {
       els.githubStatus.textContent = `${config.owner}/${config.repo}/${config.path}`;
+      els.githubSummaryStatus.textContent = `${config.owner}/${config.repo}`;
     } else {
       els.githubStatus.textContent = "GitHub 저장소를 연결하면 여러 기기에서 같은 데이터를 쓸 수 있습니다.";
+      els.githubSummaryStatus.textContent = "미연결";
     }
   }
 
