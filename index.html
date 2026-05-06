@@ -954,7 +954,7 @@ dialog::backdrop {
   const state = {
     db: null,
     prompts: [],
-    activeTag: "",
+    activeTags: [],
     editingId: "",
     viewingId: "",
     jsonEditingId: "",
@@ -1058,7 +1058,7 @@ dialog::backdrop {
     });
     els.clearSearch.addEventListener("click", () => {
       state.search = "";
-      state.activeTag = "";
+      state.activeTags = [];
       els.search.value = "";
       render();
     });
@@ -1286,7 +1286,7 @@ dialog::backdrop {
       const items = rawItems.map(sanitizePrompt).filter((item) => item && item.body.trim());
       await replaceAllPrompts(items);
       resetForm();
-      state.activeTag = "";
+      state.activeTags = [];
       state.search = "";
       els.search.value = "";
       await loadPrompts();
@@ -1592,8 +1592,27 @@ dialog::backdrop {
     const button = event.target.closest("[data-tag]");
     if (!button) return;
     const tag = button.dataset.tag || "";
-    state.activeTag = state.activeTag.toLowerCase() === tag.toLowerCase() ? "" : tag;
+    toggleActiveTag(tag);
     render();
+  }
+
+  function toggleActiveTag(tag) {
+    const cleanTag = String(tag || "").trim();
+    if (!cleanTag) {
+      state.activeTags = [];
+      return;
+    }
+
+    const key = cleanTag.toLowerCase();
+    const exists = state.activeTags.some((item) => item.toLowerCase() === key);
+    state.activeTags = exists
+      ? state.activeTags.filter((item) => item.toLowerCase() !== key)
+      : [...state.activeTags, cleanTag];
+  }
+
+  function isActiveTag(tag) {
+    const key = String(tag || "").toLowerCase();
+    return state.activeTags.some((item) => item.toLowerCase() === key);
   }
 
   function handleTagSuggestionClick(event, input) {
@@ -1605,7 +1624,7 @@ dialog::backdrop {
   async function handleListClick(event) {
     const tagButton = event.target.closest("[data-card-tag]");
     if (tagButton) {
-      state.activeTag = tagButton.dataset.cardTag;
+      toggleActiveTag(tagButton.dataset.cardTag || "");
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -1671,13 +1690,13 @@ dialog::backdrop {
 
   function renderTags() {
     const tags = getTagEntries("name");
-    const allClass = state.activeTag ? "tag-chip" : "tag-chip active";
+    const allClass = state.activeTags.length ? "tag-chip" : "tag-chip active";
     const buttons = [
       `<button class="${allClass}" data-tag="" type="button">전체 <span>${formatNumber(state.prompts.length)}</span></button>`
     ];
 
     tags.forEach(([tag, count]) => {
-      const active = state.activeTag.toLowerCase() === tag.toLowerCase() ? " active" : "";
+      const active = isActiveTag(tag) ? " active" : "";
       buttons.push(`<button class="tag-chip${active}" data-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)} <span>${formatNumber(count)}</span></button>`);
     });
 
@@ -1711,7 +1730,7 @@ dialog::backdrop {
   function renderCard(prompt) {
     const tags = prompt.tags.length
       ? prompt.tags.map((tag) => {
-          const active = state.activeTag.toLowerCase() === tag.toLowerCase() ? " active" : "";
+          const active = isActiveTag(tag) ? " active" : "";
           return `<button class="card-tag${active}" data-card-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)}</button>`;
         }).join("")
       : `<span class="card-tag" aria-disabled="true">태그 없음</span>`;
@@ -1764,14 +1783,15 @@ ${actions}
 
   function getFilteredPrompts() {
     const query = state.search.toLowerCase();
-    const activeTag = state.activeTag.toLowerCase();
+    const activeTags = state.activeTags.map((tag) => tag.toLowerCase());
 
     return [...state.prompts]
       .filter((prompt) => {
         const matchesSearch = !query
           || prompt.title.toLowerCase().includes(query)
           || prompt.tags.some((tag) => tag.toLowerCase().includes(query));
-        const matchesTag = !activeTag || prompt.tags.some((tag) => tag.toLowerCase() === activeTag);
+        const promptTags = prompt.tags.map((tag) => tag.toLowerCase());
+        const matchesTag = !activeTags.length || activeTags.every((tag) => promptTags.includes(tag));
         return matchesSearch && matchesTag;
       })
       .sort(sortPrompts);
@@ -2047,7 +2067,7 @@ ${actions}
 
     await clearStore();
     resetForm();
-    state.activeTag = "";
+    state.activeTags = [];
     state.search = "";
     els.search.value = "";
     await loadPrompts();
