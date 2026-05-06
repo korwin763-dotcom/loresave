@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T22:29:46.923Z",
+  "savedAt": "2026-05-06T22:36:21.905Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -134,6 +134,23 @@
       "fileSize": 18358,
       "createdAt": "2026-05-06T21:42:45.551Z",
       "updatedAt": "2026-05-06T21:42:45.551Z"
+    },
+    {
+      "id": "6a7ffd0b-e636-4c68-9778-b74a63ae1651",
+      "kind": "json",
+      "title": "남깡여창월드",
+      "body": "{\"type\":\"risu\",\"ver\":1,\"data\":[{\"key\":\"\",\"comment\":\"남깡여창 월드\",\"content\":\"# World Overlay: Kim Seong-mo Style Parody\\n\\n### Core Premise\\n\\nThis is a tonal overlay, not a replacement setting. It is specifically framed as a parody of the popularly imagined \\\"Kim Seong-mo-style\\\" world (럭키짱, 걸푸, etc.).\\nThe original world remains intact, but once this filter is applied, men act like gangsters and women act like prostitutes. This is not mainly about literal jobs, but about tone, posture, speech, reactions, and dramatic framing.\\nUnder this overlay, masculinity becomes 가오 (face/swagger), 깡 (raw guts), blunt pride, violence, and hierarchy; femininity becomes cheap glamour, sexual knowingness, faded allure, and the feel of a woman who has already seen too much of the dirty side of the world.\\n\\n### Male Framing (\\\"남깡\\\")\\n\\nMen behave like gangsters no matter what their original role is. A student, teacher, prince, office worker, detective, pilot, or priest can all end up sounding and moving like a thug from the back streets. They care too much about 가오, react strongly to insult or disrespect, and treat even small conflicts like challenges to their pride. Their emotional core is translated into 깡, 독기 (venomous drive), 오기 (stubborn pride), threat, contempt, rough loyalty, and explosive retaliation. Men do not explain themselves much. They warn, sneer, endure, stare, grab collars, issue ultimatums, and act like backing down would kill them faster than a knife.\\n\\n### Female Framing (\\\"여창\\\")\\n\\nWomen behave like prostitutes no matter what their original role is. A schoolgirl, noblewoman, nun, secretary, mage, idol, wife, or waitress can all end up carrying the atmosphere of a nightlife woman, a kept woman, a fallen woman, or a woman men look at too freely. They feel flirtatious, worldly, smoky, emotionally sharp, a little tragic, and already touched by scandal, pity, desire, gossip, or possession. Even when they are innocent, they should still feel as if the world has half-pulled them into a dirty melodrama. Their charm may be soft, mocking, weary, seductive, or cynical, but it should rarely feel plain or socially neutral.\\n\\n### Male-Female Dynamic\\n\\nMen and women do not meet on clean, equal, wholesome terms under this overlay. Men tend to treat affection like possession, warning, claim, or protection. Women tend to answer with teasing, invitation, tired knowingness, manipulation, or wounded softness. Romance becomes cheap, dramatic, territorial, jealous, and socially exposed. Even when feelings are genuine, they come out in dirty-looking forms: interference, risky loyalty, public implication, line-crossing, and ugly-looking devotion.\\n\\n### Violence Logic\\n\\nMen can withstand absurd amounts of pain through 깡, 오기, ego, spite, or pure refusal to fall. Getting hurt is humiliating, but continuing to stand is power. Blood, split lips, torn suits, bruises, knife wounds, and cracked ribs make a scene feel harder and cooler instead of realistically disabling a character. Fights are not clean athletic contests; they are battles of 가오 and 서열 (hierarchy) — who can keep standing long enough to look like the bigger man. Ridiculous excuses and impossible logic are allowed if they sound hard enough.\\n\\n### Dialogue Filter\\n\\nMen speak like gangsters. They sound blunt, prideful, threatening, dismissive, overly certain, and dead serious about even stupid things. They hide concern behind scolding, respect behind insults, and fear behind bluffing or silence.\\nWomen speak like women from a sleazy melodrama. They sound teasing, smoky, mocking, tired, suggestive, cynical, wounded, or emotionally manipulative. Even kindness may carry a nightlife edge. Dialogue should feel harsher, cheaper, dirtier, and more theatrical than normal conversation.\\n\\nExamples:\\n> `야, 한 번만 더 그 입으로 지껄여 봐. 가만 안 둔다.`\\n> `내가 니 걱정해서 하는 소리야, 이 새끼야. 고마운 줄 알아.`\\n> `오빠가 날 걱정하는 거야, 아니면 다른 남자한테 가는 게 싫은 거야? 그건 다른 거잖아.`\\n> (exhaling smoke) `...남자들이 다 그렇지 뭐.`\\n\\n### Social Tone\\n\\nThis overlay makes the world feel low, grimy, rumor-heavy, and soaked in wounded pride. Respectability feels thin. Scandal spreads fast. People watch each other too closely. Men are quick to posture, threaten, or test each other's 가오. Women are too easily turned into objects of desire, pity, gossip, or possession. Even a clean setting should feel like it has a back-room underside, like everything is one insult, one drink, or one bad rumor away from turning ugly.\\n\\n### Tone Guardrail\\n\\nDo not play this as sober realism. The point is not actual organized crime or actual prostitution, but an exaggerated comic-book filter where macho posturing and sleazy femininity infect everything. The tone should feel cheap, intense, dirty, melodramatic, and absurdly serious. It should be larger than life, not psychologically precise.\",\"mode\":\"normal\",\"insertorder\":100,\"alwaysActive\":true,\"secondkey\":\"\",\"selective\":false,\"useRegex\":false}]}",
+      "tags": [
+        "로어북",
+        "코미디",
+        "세계관"
+      ],
+      "favorite": false,
+      "fileName": "남깡여창월드.json",
+      "mimeType": "application/json",
+      "fileSize": 5160,
+      "createdAt": "2026-05-06T22:36:19.288Z",
+      "updatedAt": "2026-05-06T22:36:19.288Z"
     },
     {
       "id": "995b7870-b92c-4e9b-8b75-71a805948d01",
