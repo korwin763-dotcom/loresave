@@ -915,6 +915,7 @@ dialog::backdrop {
   const STORE_NAME = "prompts";
   const PREVIEW_LIMIT = 360;
   const GITHUB_CONFIG_KEY = "prompt-vault-github-config";
+  const AUTO_SAVE_DELAY = 2600;
 
   const state = {
     db: null,
@@ -926,6 +927,10 @@ dialog::backdrop {
     pendingJsonFile: null,
     githubConfig: null,
     githubSha: "",
+    autoSaveTimer: null,
+    autoSaveQueued: false,
+    isGithubSaving: false,
+    suppressAutoSave: false,
     search: "",
     sort: "updated",
     toastTimer: null
@@ -1023,7 +1028,7 @@ dialog::backdrop {
     });
     els.saveGithubConfig.addEventListener("click", saveGithubConfigFromForm);
     els.loadGithub.addEventListener("click", loadFromGithub);
-    els.saveGithub.addEventListener("click", saveToGithub);
+    els.saveGithub.addEventListener("click", () => saveToGithub({ manual: true }));
     els.tagStrip.addEventListener("click", handleTagClick);
     els.list.addEventListener("click", handleListClick);
     els.addJsonBtn.addEventListener("click", () => els.jsonFileInput.click());
@@ -1181,6 +1186,32 @@ dialog::backdrop {
     }
   }
 
+  function scheduleGithubAutoSave() {
+    if (state.suppressAutoSave) return;
+
+    const config = readGithubConfigFromForm();
+    if (validateGithubConfig(config)) {
+      updateGithubStatus("로컬에 저장됨. GitHub 연결 후 자동 저장됩니다.");
+      return;
+    }
+
+    state.githubConfig = config;
+    localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
+    state.autoSaveQueued = true;
+    window.clearTimeout(state.autoSaveTimer);
+    updateGithubStatus("변경됨. GitHub 자동 저장 대기 중...");
+    state.autoSaveTimer = window.setTimeout(() => {
+      state.autoSaveTimer = null;
+      saveToGithub({ manual: false });
+    }, AUTO_SAVE_DELAY);
+  }
+
+  function clearGithubAutoSaveTimer() {
+    window.clearTimeout(state.autoSaveTimer);
+    state.autoSaveTimer = null;
+    state.autoSaveQueued = false;
+  }
+
   function normalizeGithubPath(value) {
     return String(value || "")
       .trim()
@@ -1197,6 +1228,8 @@ dialog::backdrop {
     }
 
     try {
+      clearGithubAutoSaveTimer();
+      state.suppressAutoSave = true;
       setGithubBusy(true);
       updateGithubStatus("GitHub에서 데이터를 불러오는 중입니다...");
       state.githubConfig = config;
@@ -1227,21 +1260,33 @@ dialog::backdrop {
       showToast(githubErrorMessage(error, "GitHub에서 불러오지 못했습니다."));
       updateGithubStatus("GitHub 불러오기에 실패했습니다.");
     } finally {
+      state.suppressAutoSave = false;
       setGithubBusy(false);
     }
   }
 
-  async function saveToGithub() {
+  async function saveToGithub(options = {}) {
+    const manual = options.manual !== false;
+
+    if (state.isGithubSaving) {
+      state.autoSaveQueued = true;
+      updateGithubStatus("GitHub 저장 중입니다. 끝나면 한 번 더 저장합니다.");
+      if (manual) showToast("저장 중입니다. 잠시 뒤 다시 반영됩니다.");
+      return;
+    }
+
     const config = readGithubConfigFromForm();
     const missing = validateGithubConfig(config);
     if (missing) {
-      showToast(missing);
+      if (manual) showToast(missing);
+      else updateGithubStatus("GitHub 자동 저장 대기 중: 연결 설정이 필요합니다.");
       return;
     }
 
     try {
+      state.autoSaveQueued = false;
       setGithubBusy(true);
-      updateGithubStatus("GitHub에 데이터를 저장하는 중입니다...");
+      updateGithubStatus(manual ? "GitHub에 데이터를 저장하는 중입니다..." : "GitHub 자동 저장 중입니다...");
       state.githubConfig = config;
       localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
 
@@ -1271,14 +1316,17 @@ dialog::backdrop {
 
       const result = await githubRequest(config, "PUT", body);
       state.githubSha = result.content && result.content.sha ? result.content.sha : "";
-      updateGithubStatus(`GitHub에 저장했습니다. ${formatDate(new Date().toISOString())}`);
-      showToast("GitHub에 저장했습니다.");
+      updateGithubStatus(`GitHub에 저장됨 ${formatDate(new Date().toISOString())}`);
+      if (manual) showToast("GitHub에 저장했습니다.");
     } catch (error) {
       console.error(error);
       showToast(githubErrorMessage(error, "GitHub에 저장하지 못했습니다."));
       updateGithubStatus("GitHub 저장에 실패했습니다.");
     } finally {
       setGithubBusy(false);
+      if (state.autoSaveQueued) {
+        scheduleGithubAutoSave();
+      }
     }
   }
 
@@ -1323,6 +1371,7 @@ dialog::backdrop {
   }
 
   function setGithubBusy(isBusy) {
+    state.isGithubSaving = isBusy;
     els.loadGithub.disabled = isBusy;
     els.saveGithub.disabled = isBusy;
     els.saveGithubConfig.disabled = isBusy;
@@ -1372,6 +1421,7 @@ dialog::backdrop {
     await loadPrompts();
     render();
     showToast(edited ? "수정했습니다." : "저장했습니다.");
+    scheduleGithubAutoSave();
   }
 
   function resetForm() {
@@ -1470,6 +1520,7 @@ dialog::backdrop {
       await loadPrompts();
       render();
       showToast("JSON 이름/태그를 수정했습니다.");
+      scheduleGithubAutoSave();
       return;
     }
 
@@ -1496,6 +1547,7 @@ dialog::backdrop {
     await loadPrompts();
     render();
     showToast("JSON 파일을 저장했습니다.");
+    scheduleGithubAutoSave();
   }
 
   function handleTagClick(event) {
@@ -1774,6 +1826,7 @@ ${actions}
     await loadPrompts();
     render();
     showToast("삭제했습니다.");
+    scheduleGithubAutoSave();
   }
 
   async function toggleFavorite(id) {
@@ -1785,6 +1838,7 @@ ${actions}
     await putPrompt(prompt);
     await loadPrompts();
     render();
+    scheduleGithubAutoSave();
   }
 
   function parseTags(value) {
@@ -1900,6 +1954,7 @@ ${actions}
       await loadPrompts();
       render();
       showToast(`${formatNumber(imported.length)}개를 불러왔습니다.`);
+      scheduleGithubAutoSave();
     } catch (error) {
       console.error(error);
       showToast("JSON 파일을 읽지 못했습니다.");
@@ -1924,6 +1979,7 @@ ${actions}
     await loadPrompts();
     render();
     showToast("모든 항목을 삭제했습니다.");
+    scheduleGithubAutoSave();
   }
 
   function makePreview(body) {
