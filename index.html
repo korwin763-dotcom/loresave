@@ -275,6 +275,48 @@ select:focus-visible {
   padding: 14px;
 }
 
+.sync-panel {
+  padding: 14px;
+}
+
+.sync-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sync-grid .field {
+  gap: 5px;
+}
+
+.sync-grid input {
+  width: 100%;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 13px;
+}
+
+.sync-grid .token-field {
+  grid-column: span 2;
+}
+
+.sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sync-status {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .search-row {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) 148px auto;
@@ -619,6 +661,18 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
+  .sync-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sync-grid .token-field {
+    grid-column: auto;
+  }
+
+  .sync-actions .btn {
+    flex: 1 1 auto;
+  }
+
   .card-top,
   .card-bottom,
   .dialog-head,
@@ -656,6 +710,37 @@ dialog::backdrop {
 
   <main class="shell">
     <section class="main" aria-label="프롬프트 목록">
+      <div class="panel sync-panel" aria-label="GitHub 동기화">
+        <div class="sync-grid">
+          <div class="field">
+            <label for="githubOwnerInput">Owner</label>
+            <input id="githubOwnerInput" type="text" autocomplete="off" placeholder="github-id" />
+          </div>
+          <div class="field">
+            <label for="githubRepoInput">Repo</label>
+            <input id="githubRepoInput" type="text" autocomplete="off" placeholder="prompt-vault-data" />
+          </div>
+          <div class="field">
+            <label for="githubBranchInput">Branch</label>
+            <input id="githubBranchInput" type="text" autocomplete="off" placeholder="main" />
+          </div>
+          <div class="field">
+            <label for="githubPathInput">Path</label>
+            <input id="githubPathInput" type="text" autocomplete="off" placeholder="data/prompt-vault-data.json" />
+          </div>
+          <div class="field token-field">
+            <label for="githubTokenInput">Token</label>
+            <input id="githubTokenInput" type="password" autocomplete="off" placeholder="github_pat_..." />
+          </div>
+        </div>
+        <div class="sync-actions">
+          <button class="btn" id="saveGithubConfigBtn" type="button">연결 저장</button>
+          <button class="btn" id="loadGithubBtn" type="button">GitHub에서 불러오기</button>
+          <button class="btn primary" id="saveGithubBtn" type="button">GitHub에 저장</button>
+        </div>
+        <div class="sync-status" id="githubStatus">GitHub 저장소를 연결하면 여러 기기에서 같은 데이터를 쓸 수 있습니다.</div>
+      </div>
+
       <div class="panel search-panel">
         <div class="search-row">
           <input id="searchInput" type="search" autocomplete="off" placeholder="제목/태그 검색" />
@@ -769,6 +854,7 @@ dialog::backdrop {
   const DB_VERSION = 1;
   const STORE_NAME = "prompts";
   const PREVIEW_LIMIT = 360;
+  const GITHUB_CONFIG_KEY = "prompt-vault-github-config";
 
   const state = {
     db: null,
@@ -778,6 +864,8 @@ dialog::backdrop {
     viewingId: "",
     jsonEditingId: "",
     pendingJsonFile: null,
+    githubConfig: null,
+    githubSha: "",
     search: "",
     sort: "updated",
     toastTimer: null
@@ -801,6 +889,15 @@ dialog::backdrop {
     resultCount: $("#resultCount"),
     storageInfo: $("#storageInfo"),
     list: $("#promptList"),
+    githubOwner: $("#githubOwnerInput"),
+    githubRepo: $("#githubRepoInput"),
+    githubBranch: $("#githubBranchInput"),
+    githubPath: $("#githubPathInput"),
+    githubToken: $("#githubTokenInput"),
+    githubStatus: $("#githubStatus"),
+    saveGithubConfig: $("#saveGithubConfigBtn"),
+    loadGithub: $("#loadGithubBtn"),
+    saveGithub: $("#saveGithubBtn"),
     addJsonBtn: $("#addJsonBtn"),
     jsonFileInput: $("#jsonFileInput"),
     exportBtn: $("#exportBtn"),
@@ -833,6 +930,7 @@ dialog::backdrop {
 
   async function init() {
     bindEvents();
+    loadGithubConfig();
     try {
       state.db = await openDatabase();
       await loadPrompts();
@@ -862,6 +960,9 @@ dialog::backdrop {
       els.search.value = "";
       render();
     });
+    els.saveGithubConfig.addEventListener("click", saveGithubConfigFromForm);
+    els.loadGithub.addEventListener("click", loadFromGithub);
+    els.saveGithub.addEventListener("click", saveToGithub);
     els.tagStrip.addEventListener("click", handleTagClick);
     els.list.addEventListener("click", handleListClick);
     els.addJsonBtn.addEventListener("click", () => els.jsonFileInput.click());
@@ -951,6 +1052,223 @@ dialog::backdrop {
 
   async function clearStore() {
     await withStore("readwrite", (store) => store.clear());
+  }
+
+  function loadGithubConfig() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(GITHUB_CONFIG_KEY) || "null");
+      state.githubConfig = saved && typeof saved === "object" ? saved : {};
+    } catch {
+      state.githubConfig = {};
+    }
+
+    els.githubOwner.value = state.githubConfig.owner || "";
+    els.githubRepo.value = state.githubConfig.repo || "";
+    els.githubBranch.value = state.githubConfig.branch || "main";
+    els.githubPath.value = state.githubConfig.path || "data/prompt-vault-data.json";
+    els.githubToken.value = state.githubConfig.token || "";
+    updateGithubStatus();
+  }
+
+  function readGithubConfigFromForm() {
+    return {
+      owner: els.githubOwner.value.trim(),
+      repo: els.githubRepo.value.trim(),
+      branch: els.githubBranch.value.trim() || "main",
+      path: normalizeGithubPath(els.githubPath.value),
+      token: els.githubToken.value.trim()
+    };
+  }
+
+  function saveGithubConfigFromForm() {
+    const config = readGithubConfigFromForm();
+    const missing = validateGithubConfig(config);
+    if (missing) {
+      showToast(missing);
+      return;
+    }
+
+    state.githubConfig = config;
+    localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
+    state.githubSha = "";
+    updateGithubStatus("연결 설정을 저장했습니다.");
+    showToast("GitHub 연결 설정을 저장했습니다.");
+  }
+
+  function validateGithubConfig(config) {
+    if (!config.owner) return "Owner를 입력해주세요.";
+    if (!config.repo) return "Repo를 입력해주세요.";
+    if (!config.path) return "Path를 입력해주세요.";
+    if (!config.token) return "Token을 입력해주세요.";
+    return "";
+  }
+
+  function updateGithubStatus(message) {
+    if (message) {
+      els.githubStatus.textContent = message;
+      return;
+    }
+
+    const config = state.githubConfig || {};
+    if (config.owner && config.repo && config.path) {
+      els.githubStatus.textContent = `${config.owner}/${config.repo}/${config.path}`;
+    } else {
+      els.githubStatus.textContent = "GitHub 저장소를 연결하면 여러 기기에서 같은 데이터를 쓸 수 있습니다.";
+    }
+  }
+
+  function normalizeGithubPath(value) {
+    return String(value || "")
+      .trim()
+      .replace(/^\/+/, "")
+      .replace(/\/+/g, "/");
+  }
+
+  async function loadFromGithub() {
+    const config = readGithubConfigFromForm();
+    const missing = validateGithubConfig(config);
+    if (missing) {
+      showToast(missing);
+      return;
+    }
+
+    try {
+      setGithubBusy(true);
+      updateGithubStatus("GitHub에서 데이터를 불러오는 중입니다...");
+      state.githubConfig = config;
+      localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
+
+      const remote = await githubRequest(config, "GET");
+      state.githubSha = remote.sha || "";
+      const text = decodeBase64(remote.content || "");
+      const parsed = JSON.parse(text);
+      const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
+
+      if (!Array.isArray(rawItems)) {
+        throw new Error("data file does not contain items");
+      }
+
+      const items = rawItems.map(sanitizePrompt).filter((item) => item && item.body.trim());
+      await replaceAllPrompts(items);
+      resetForm();
+      state.activeTag = "";
+      state.search = "";
+      els.search.value = "";
+      await loadPrompts();
+      render();
+      updateGithubStatus(`GitHub에서 ${formatNumber(items.length)}개를 불러왔습니다. ${formatDate(new Date().toISOString())}`);
+      showToast("GitHub 데이터를 불러왔습니다.");
+    } catch (error) {
+      console.error(error);
+      showToast(githubErrorMessage(error, "GitHub에서 불러오지 못했습니다."));
+      updateGithubStatus("GitHub 불러오기에 실패했습니다.");
+    } finally {
+      setGithubBusy(false);
+    }
+  }
+
+  async function saveToGithub() {
+    const config = readGithubConfigFromForm();
+    const missing = validateGithubConfig(config);
+    if (missing) {
+      showToast(missing);
+      return;
+    }
+
+    try {
+      setGithubBusy(true);
+      updateGithubStatus("GitHub에 데이터를 저장하는 중입니다...");
+      state.githubConfig = config;
+      localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
+
+      let sha = state.githubSha;
+      if (!sha) {
+        try {
+          const remote = await githubRequest(config, "GET");
+          sha = remote.sha || "";
+          state.githubSha = sha;
+        } catch (error) {
+          if (error.status !== 404) throw error;
+        }
+      }
+
+      const payload = {
+        app: "prompt-vault",
+        version: 1,
+        savedAt: new Date().toISOString(),
+        items: state.prompts
+      };
+      const body = {
+        message: `Update prompt vault data ${makeDateStamp()}`,
+        content: encodeBase64(JSON.stringify(payload, null, 2)),
+        branch: config.branch
+      };
+      if (sha) body.sha = sha;
+
+      const result = await githubRequest(config, "PUT", body);
+      state.githubSha = result.content && result.content.sha ? result.content.sha : "";
+      updateGithubStatus(`GitHub에 저장했습니다. ${formatDate(new Date().toISOString())}`);
+      showToast("GitHub에 저장했습니다.");
+    } catch (error) {
+      console.error(error);
+      showToast(githubErrorMessage(error, "GitHub에 저장하지 못했습니다."));
+      updateGithubStatus("GitHub 저장에 실패했습니다.");
+    } finally {
+      setGithubBusy(false);
+    }
+  }
+
+  async function githubRequest(config, method, body) {
+    const url = `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents/${config.path.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(config.branch)}`;
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": `Bearer ${config.token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(body ? { "Content-Type": "application/json" } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    const text = await response.text();
+    let data = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { message: text };
+      }
+    }
+
+    if (!response.ok) {
+      const error = new Error(data && data.message ? data.message : `GitHub API ${response.status}`);
+      error.status = response.status;
+      error.data = data;
+      throw error;
+    }
+
+    return data || {};
+  }
+
+  async function replaceAllPrompts(items) {
+    await clearStore();
+    if (items.length) {
+      await putPrompts(items);
+    }
+  }
+
+  function setGithubBusy(isBusy) {
+    els.loadGithub.disabled = isBusy;
+    els.saveGithub.disabled = isBusy;
+    els.saveGithubConfig.disabled = isBusy;
+  }
+
+  function githubErrorMessage(error, fallback) {
+    if (error.status === 401 || error.status === 403) return "GitHub 토큰 권한을 확인해주세요.";
+    if (error.status === 404) return "GitHub repo 또는 data path를 찾지 못했습니다.";
+    if (error.status === 409) return "GitHub 파일이 바뀌었습니다. 먼저 불러온 뒤 다시 저장해주세요.";
+    return error && error.message ? error.message : fallback;
   }
 
   async function saveFromForm(event) {
@@ -1569,6 +1887,21 @@ ${actions}
 
   function byteLength(text) {
     return new Blob([String(text || "")]).size;
+  }
+
+  function encodeBase64(text) {
+    const bytes = new TextEncoder().encode(String(text || ""));
+    let binary = "";
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    return btoa(binary);
+  }
+
+  function decodeBase64(value) {
+    const binary = atob(String(value || "").replace(/\s/g, ""));
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
   }
 
   async function copyText(text) {
