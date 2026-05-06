@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>프롬프트 보관함</title>
+<style>
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --panel-soft: #f0f4f3;
+  --line: #d9e1df;
+  --line-strong: #b7c5c2;
+  --text: #202322;
+  --muted: #66736f;
+  --faint: #8d9995;
+  --accent: #0f766e;
+  --accent-strong: #0b5d57;
+  --accent-soft: #d8efeb;
+  --warm: #b23a48;
+  --warm-soft: #f8e3e6;
+  --gold: #a66a00;
+  --shadow: 0 12px 32px rgba(24, 35, 33, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.07), transparent 34%),
+    linear-gradient(315deg, rgba(178, 58, 72, 0.06), transparent 36%),
+    var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, 0.22);
+  outline-offset: 2px;
+}
+
+.app {
+  width: min(1420px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 6px 2px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.brand p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 392px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.composer {
+  grid-column: 1;
+  position: sticky;
+  top: 18px;
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.mini-stat {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.form {
+  display: grid;
+  gap: 13px;
+  padding: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field input,
+.field textarea,
+.search-row input,
+.search-row select {
+  width: 100%;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+.search-row input::placeholder {
+  color: var(--faint);
+}
+
+.field textarea {
+  min-height: 390px;
+  max-height: 62vh;
+  resize: vertical;
+  font-family: "Consolas", "SFMono-Regular", "Menlo", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.form-actions,
+.search-actions,
+.card-actions,
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn.primary {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn.primary:hover {
+  background: var(--accent-strong);
+}
+
+.btn.danger {
+  color: var(--warm);
+  background: var(--warm-soft);
+  border-color: #efc4ca;
+}
+
+.btn.ghost {
+  background: transparent;
+}
+
+.btn.small {
+  min-height: 32px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.btn.icon {
+  width: 36px;
+  padding: 0;
+  font-size: 17px;
+}
+
+.btn.icon.active {
+  color: #fff;
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.btn[disabled] {
+  opacity: 0.62;
+  cursor: default;
+  transform: none;
+}
+
+.main {
+  grid-column: 2;
+  display: grid;
+  gap: 12px;
+}
+
+.search-panel {
+  padding: 14px;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 148px auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.tag-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.tag-chip,
+.card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tag-chip {
+  min-height: 30px;
+  padding: 5px 10px;
+}
+
+.tag-chip.active,
+.card-tag.active {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: #98d2ca;
+}
+
+.tag-chip span {
+  color: var(--faint);
+  font-weight: 750;
+}
+
+.list-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 0 2px;
+}
+
+.prompt-list {
+  display: grid;
+  gap: 10px;
+}
+
+.prompt-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(24, 35, 33, 0.055);
+  overflow: hidden;
+}
+
+.prompt-card.favorite {
+  border-color: #d9a63e;
+}
+
+.card-inner {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-title {
+  min-width: 0;
+}
+
+.card-title h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.card-meta {
+  margin-top: 4px;
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid #98d2ca;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-tag {
+  min-height: 26px;
+  padding: 4px 9px;
+}
+
+.preview {
+  max-height: 104px;
+  overflow: hidden;
+  color: #2f3634;
+  background: #f8faf9;
+  border: 1px solid #e1e8e6;
+  border-radius: 8px;
+  padding: 10px 11px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: "Consolas", "SFMono-Regular", "Menlo", monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.char-count {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  padding: 28px;
+}
+
+.empty strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+dialog {
+  width: min(940px, calc(100vw - 28px));
+  max-height: calc(100vh - 36px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(17, 28, 26, 0.24);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: rgba(16, 24, 23, 0.38);
+}
+
+.dialog-head,
+.dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.dialog-head {
+  border-bottom: 1px solid var(--line);
+}
+
+.dialog-foot {
+  border-top: 1px solid var(--line);
+}
+
+.dialog-title {
+  min-width: 0;
+}
+
+.dialog-title h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.dialog-title p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dialog-body {
+  padding: 16px;
+  background: #fbfcfc;
+}
+
+.dialog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.file-summary {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  color: var(--muted);
+  background: #f8faf9;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.file-summary strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.full-body {
+  max-height: calc(100vh - 240px);
+  margin: 0;
+  overflow: auto;
+  padding: 14px;
+  color: #202322;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: "Consolas", "SFMono-Regular", "Menlo", monospace;
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  max-width: min(420px, calc(100vw - 36px));
+  padding: 11px 13px;
+  color: #fff;
+  background: #202322;
+  border-radius: 8px;
+  box-shadow: 0 12px 34px rgba(17, 28, 26, 0.22);
+  font-size: 13px;
+  transform: translateY(18px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 20;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .main {
+    grid-column: 1;
+    order: 1;
+  }
+
+  .composer {
+    grid-column: 1;
+    order: 2;
+    position: static;
+  }
+
+  .field textarea {
+    min-height: 300px;
+    max-height: 56vh;
+  }
+}
+
+@media (max-width: 680px) {
+  .app {
+    width: min(100vw - 20px, 1420px);
+    padding-top: 14px;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .top-actions,
+  .form-actions,
+  .search-actions,
+  .dialog-actions {
+    width: 100%;
+  }
+
+  .top-actions .btn,
+  .form-actions .btn,
+  .search-actions .btn,
+  .dialog-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .card-top,
+  .card-bottom,
+  .dialog-head,
+  .dialog-foot {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .card-actions {
+    width: 100%;
+  }
+
+  .card-actions .btn {
+    flex: 1 1 80px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1>프롬프트 보관함</h1>
+      <p>제목과 태그로 찾고, 긴 본문은 바로 복사합니다.</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn primary" id="addJsonBtn" type="button">JSON 추가</button>
+      <button class="btn" id="exportBtn" type="button">백업 내보내기</button>
+      <button class="btn" id="importBtn" type="button">백업 불러오기</button>
+      <button class="btn danger" id="clearAllBtn" type="button">전체 삭제</button>
+      <input class="hidden" id="jsonFileInput" type="file" accept="application/json,.json" />
+      <input class="hidden" id="importFile" type="file" accept="application/json,.json" />
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="main" aria-label="프롬프트 목록">
+      <div class="panel search-panel">
+        <div class="search-row">
+          <input id="searchInput" type="search" autocomplete="off" placeholder="제목/태그 검색" />
+          <select id="sortSelect" aria-label="정렬">
+            <option value="updated">최근 수정순</option>
+            <option value="created">최근 저장순</option>
+            <option value="title">제목순</option>
+          </select>
+          <div class="search-actions">
+            <button class="btn" id="clearSearchBtn" type="button">초기화</button>
+          </div>
+        </div>
+        <div class="tag-strip" id="tagStrip"></div>
+      </div>
+
+      <div class="list-status">
+        <span id="resultCount">0개</span>
+        <span id="storageInfo">저장소 확인 중</span>
+      </div>
+
+      <div class="prompt-list" id="promptList"></div>
+    </section>
+
+    <section class="panel composer" aria-labelledby="editorTitle">
+      <div class="panel-head">
+        <h2 id="editorTitle">새 항목</h2>
+        <span class="mini-stat" id="bodyCounter">0자</span>
+      </div>
+      <form class="form" id="promptForm">
+        <div class="field">
+          <label for="titleInput">제목</label>
+          <input id="titleInput" type="text" autocomplete="off" maxlength="180" placeholder="{{char}}, am I cute?" />
+        </div>
+        <div class="field">
+          <label for="tagInput">태그</label>
+          <input id="tagInput" type="text" autocomplete="off" placeholder="ooc, novel, lorebook" />
+        </div>
+        <div class="field">
+          <label for="bodyInput">본문</label>
+          <textarea id="bodyInput" spellcheck="false" placeholder="긴 프롬프트를 붙여넣으세요."></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn primary" id="saveBtn" type="submit">저장</button>
+          <button class="btn" id="resetBtn" type="button">새로 작성</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</div>
+
+<dialog id="viewDialog">
+  <div class="dialog-head">
+    <div class="dialog-title">
+      <h2 id="viewTitle"></h2>
+      <p id="viewMeta"></p>
+    </div>
+    <button class="btn small" id="closeDialogBtn" type="button">닫기</button>
+  </div>
+  <div class="dialog-body">
+    <div class="dialog-tags" id="viewTags"></div>
+    <pre class="full-body" id="viewBody"></pre>
+  </div>
+  <div class="dialog-foot">
+    <span class="mini-stat" id="viewCounter"></span>
+    <div class="dialog-actions">
+      <button class="btn primary" id="copyDialogBtn" type="button">본문 복사</button>
+      <button class="btn" id="editDialogBtn" type="button">수정</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="jsonDialog">
+  <form id="jsonForm">
+    <div class="dialog-head">
+      <div class="dialog-title">
+        <h2 id="jsonDialogTitle">JSON 파일 추가</h2>
+        <p>파일 내용은 그대로 보관하고 이름과 태그만 저장합니다.</p>
+      </div>
+      <button class="btn small" id="cancelJsonBtn" type="button">닫기</button>
+    </div>
+    <div class="dialog-body">
+      <div class="form">
+        <div class="file-summary" id="jsonFileInfo"></div>
+        <div class="field">
+          <label for="jsonTitleInput">이름</label>
+          <input id="jsonTitleInput" type="text" autocomplete="off" maxlength="180" placeholder="로어북 이름" />
+        </div>
+        <div class="field">
+          <label for="jsonTagInput">태그</label>
+          <input id="jsonTagInput" type="text" autocomplete="off" placeholder="lorebook, character, json" />
+        </div>
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <span class="mini-stat" id="jsonDialogMeta"></span>
+      <div class="dialog-actions">
+        <button class="btn" type="button" id="cancelJsonFootBtn">취소</button>
+        <button class="btn primary" type="submit" id="saveJsonBtn">저장</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const DB_NAME = "prompt-vault-db";
+  const DB_VERSION = 1;
+  const STORE_NAME = "prompts";
+  const PREVIEW_LIMIT = 360;
+
+  const state = {
+    db: null,
+    prompts: [],
+    activeTag: "",
+    editingId: "",
+    viewingId: "",
+    jsonEditingId: "",
+    pendingJsonFile: null,
+    search: "",
+    sort: "updated",
+    toastTimer: null
+  };
+
+  const $ = (selector) => document.querySelector(selector);
+
+  const els = {
+    editorTitle: $("#editorTitle"),
+    form: $("#promptForm"),
+    title: $("#titleInput"),
+    tags: $("#tagInput"),
+    body: $("#bodyInput"),
+    bodyCounter: $("#bodyCounter"),
+    saveBtn: $("#saveBtn"),
+    resetBtn: $("#resetBtn"),
+    search: $("#searchInput"),
+    sort: $("#sortSelect"),
+    clearSearch: $("#clearSearchBtn"),
+    tagStrip: $("#tagStrip"),
+    resultCount: $("#resultCount"),
+    storageInfo: $("#storageInfo"),
+    list: $("#promptList"),
+    addJsonBtn: $("#addJsonBtn"),
+    jsonFileInput: $("#jsonFileInput"),
+    exportBtn: $("#exportBtn"),
+    importBtn: $("#importBtn"),
+    importFile: $("#importFile"),
+    clearAllBtn: $("#clearAllBtn"),
+    jsonDialog: $("#jsonDialog"),
+    jsonForm: $("#jsonForm"),
+    jsonDialogTitle: $("#jsonDialogTitle"),
+    jsonFileInfo: $("#jsonFileInfo"),
+    jsonTitle: $("#jsonTitleInput"),
+    jsonTags: $("#jsonTagInput"),
+    jsonDialogMeta: $("#jsonDialogMeta"),
+    cancelJson: $("#cancelJsonBtn"),
+    cancelJsonFoot: $("#cancelJsonFootBtn"),
+    saveJson: $("#saveJsonBtn"),
+    dialog: $("#viewDialog"),
+    closeDialog: $("#closeDialogBtn"),
+    viewTitle: $("#viewTitle"),
+    viewMeta: $("#viewMeta"),
+    viewTags: $("#viewTags"),
+    viewBody: $("#viewBody"),
+    viewCounter: $("#viewCounter"),
+    copyDialog: $("#copyDialogBtn"),
+    editDialog: $("#editDialogBtn"),
+    toast: $("#toast")
+  };
+
+  document.addEventListener("DOMContentLoaded", init);
+
+  async function init() {
+    bindEvents();
+    try {
+      state.db = await openDatabase();
+      await loadPrompts();
+      render();
+      showToast("준비됐습니다.");
+    } catch (error) {
+      console.error(error);
+      showToast("브라우저 저장소를 열지 못했습니다.");
+    }
+  }
+
+  function bindEvents() {
+    els.form.addEventListener("submit", saveFromForm);
+    els.resetBtn.addEventListener("click", resetForm);
+    els.body.addEventListener("input", updateBodyCounter);
+    els.search.addEventListener("input", () => {
+      state.search = els.search.value.trim();
+      render();
+    });
+    els.sort.addEventListener("change", () => {
+      state.sort = els.sort.value;
+      render();
+    });
+    els.clearSearch.addEventListener("click", () => {
+      state.search = "";
+      state.activeTag = "";
+      els.search.value = "";
+      render();
+    });
+    els.tagStrip.addEventListener("click", handleTagClick);
+    els.list.addEventListener("click", handleListClick);
+    els.addJsonBtn.addEventListener("click", () => els.jsonFileInput.click());
+    els.jsonFileInput.addEventListener("change", handleJsonFileSelect);
+    els.jsonForm.addEventListener("submit", saveJsonFileItem);
+    els.cancelJson.addEventListener("click", closeJsonDialog);
+    els.cancelJsonFoot.addEventListener("click", closeJsonDialog);
+    els.exportBtn.addEventListener("click", exportPrompts);
+    els.importBtn.addEventListener("click", () => els.importFile.click());
+    els.importFile.addEventListener("change", importPrompts);
+    els.clearAllBtn.addEventListener("click", clearAllPrompts);
+    els.closeDialog.addEventListener("click", () => els.dialog.close());
+    els.copyDialog.addEventListener("click", () => copyViewingPrompt(els.copyDialog));
+    els.editDialog.addEventListener("click", () => {
+      const id = state.viewingId;
+      els.dialog.close();
+      startEdit(id);
+    });
+    document.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        if (document.activeElement === els.body || document.activeElement === els.title || document.activeElement === els.tags) {
+          event.preventDefault();
+          els.form.requestSubmit();
+        }
+      }
+    });
+  }
+
+  function openDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+          store.createIndex("updatedAt", "updatedAt", { unique: false });
+          store.createIndex("createdAt", "createdAt", { unique: false });
+        }
+      };
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function withStore(mode, callback) {
+    return new Promise((resolve, reject) => {
+      const tx = state.db.transaction(STORE_NAME, mode);
+      const store = tx.objectStore(STORE_NAME);
+      const result = callback(store);
+
+      tx.oncomplete = () => resolve(result);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+  }
+
+  function getAllItems() {
+    return new Promise((resolve, reject) => {
+      const tx = state.db.transaction(STORE_NAME, "readonly");
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function loadPrompts() {
+    state.prompts = (await getAllItems()).map(sanitizePrompt).filter(Boolean);
+    await updateStorageInfo();
+  }
+
+  async function putPrompt(prompt) {
+    await withStore("readwrite", (store) => store.put(prompt));
+  }
+
+  async function putPrompts(prompts) {
+    await withStore("readwrite", (store) => {
+      prompts.forEach((prompt) => store.put(prompt));
+    });
+  }
+
+  async function deletePrompt(id) {
+    await withStore("readwrite", (store) => store.delete(id));
+  }
+
+  async function clearStore() {
+    await withStore("readwrite", (store) => store.clear());
+  }
+
+  async function saveFromForm(event) {
+    event.preventDefault();
+
+    const title = els.title.value.trim();
+    const body = els.body.value;
+    const tags = parseTags(els.tags.value);
+
+    if (!title) {
+      showToast("제목을 입력해주세요.");
+      els.title.focus();
+      return;
+    }
+
+    if (!body.trim()) {
+      showToast("본문을 입력해주세요.");
+      els.body.focus();
+      return;
+    }
+
+    const previous = state.editingId ? state.prompts.find((prompt) => prompt.id === state.editingId) : null;
+    const now = new Date().toISOString();
+    const item = {
+      id: previous ? previous.id : createId(),
+      title,
+      body,
+      tags,
+      favorite: previous ? Boolean(previous.favorite) : false,
+      createdAt: previous ? previous.createdAt : now,
+      updatedAt: now
+    };
+
+    await putPrompt(item);
+    const edited = Boolean(previous);
+    resetForm();
+    await loadPrompts();
+    render();
+    showToast(edited ? "수정했습니다." : "저장했습니다.");
+  }
+
+  function resetForm() {
+    state.editingId = "";
+    els.editorTitle.textContent = "새 항목";
+    els.saveBtn.textContent = "저장";
+    els.title.value = "";
+    els.tags.value = "";
+    els.body.value = "";
+    updateBodyCounter();
+  }
+
+  function updateBodyCounter() {
+    els.bodyCounter.textContent = `${formatNumber(els.body.value.length)}자`;
+  }
+
+  async function handleJsonFileSelect(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      JSON.parse(text);
+      state.pendingJsonFile = {
+        body: text,
+        fileName: file.name || "data.json",
+        mimeType: file.type || "application/json",
+        fileSize: file.size || byteLength(text),
+        lastModified: file.lastModified || 0
+      };
+      state.jsonEditingId = "";
+      openJsonDialog({
+        title: stripJsonExtension(file.name || "data.json"),
+        tags: "",
+        fileName: state.pendingJsonFile.fileName,
+        fileSize: state.pendingJsonFile.fileSize,
+        mode: "add"
+      });
+    } catch (error) {
+      console.error(error);
+      showToast("올바른 JSON 파일이 아닙니다.");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
+  function openJsonDialog(data) {
+    els.jsonDialogTitle.textContent = data.mode === "edit" ? "JSON 이름/태그 수정" : "JSON 파일 추가";
+    els.jsonTitle.value = data.title || "";
+    els.jsonTags.value = data.tags || "";
+    els.jsonFileInfo.innerHTML = `
+      <strong>${escapeHtml(data.fileName || "data.json")}</strong>
+      <span>${formatBytes(data.fileSize || 0)}</span>
+    `;
+    els.jsonDialogMeta.textContent = data.mode === "edit" ? "파일 내용은 그대로 유지됩니다." : "JSON 파일 항목";
+
+    if (typeof els.jsonDialog.showModal === "function") {
+      els.jsonDialog.showModal();
+    } else {
+      els.jsonDialog.setAttribute("open", "");
+    }
+    els.jsonTitle.focus();
+  }
+
+  function closeJsonDialog() {
+    state.pendingJsonFile = null;
+    state.jsonEditingId = "";
+    if (els.jsonDialog.open && typeof els.jsonDialog.close === "function") {
+      els.jsonDialog.close();
+    } else {
+      els.jsonDialog.removeAttribute("open");
+    }
+  }
+
+  async function saveJsonFileItem(event) {
+    event.preventDefault();
+
+    const title = els.jsonTitle.value.trim();
+    const tags = parseTags(els.jsonTags.value);
+
+    if (!title) {
+      showToast("JSON 이름을 입력해주세요.");
+      els.jsonTitle.focus();
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const previous = state.jsonEditingId ? state.prompts.find((prompt) => prompt.id === state.jsonEditingId) : null;
+
+    if (previous) {
+      previous.title = title;
+      previous.tags = tags;
+      previous.updatedAt = now;
+      await putPrompt(previous);
+      closeJsonDialog();
+      await loadPrompts();
+      render();
+      showToast("JSON 이름/태그를 수정했습니다.");
+      return;
+    }
+
+    if (!state.pendingJsonFile) {
+      showToast("JSON 파일을 다시 선택해주세요.");
+      return;
+    }
+
+    await putPrompt({
+      id: createId(),
+      kind: "json",
+      title,
+      body: state.pendingJsonFile.body,
+      tags,
+      favorite: false,
+      fileName: state.pendingJsonFile.fileName,
+      mimeType: state.pendingJsonFile.mimeType,
+      fileSize: state.pendingJsonFile.fileSize,
+      createdAt: now,
+      updatedAt: now
+    });
+
+    closeJsonDialog();
+    await loadPrompts();
+    render();
+    showToast("JSON 파일을 저장했습니다.");
+  }
+
+  function handleTagClick(event) {
+    const button = event.target.closest("[data-tag]");
+    if (!button) return;
+    const tag = button.dataset.tag || "";
+    state.activeTag = state.activeTag.toLowerCase() === tag.toLowerCase() ? "" : tag;
+    render();
+  }
+
+  async function handleListClick(event) {
+    const tagButton = event.target.closest("[data-card-tag]");
+    if (tagButton) {
+      state.activeTag = tagButton.dataset.cardTag;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+
+    const card = button.closest("[data-id]");
+    if (!card) return;
+
+    const id = card.dataset.id;
+    const action = button.dataset.action;
+
+    if (action === "copy") {
+      await copyPrompt(id, button);
+    } else if (action === "download") {
+      downloadJsonPrompt(id);
+    } else if (action === "view") {
+      openPrompt(id);
+    } else if (action === "edit") {
+      startEdit(id);
+    } else if (action === "delete") {
+      await removePrompt(id);
+    } else if (action === "favorite") {
+      await toggleFavorite(id);
+    }
+  }
+
+  function render() {
+    renderTags();
+    const filtered = getFilteredPrompts();
+
+    els.resultCount.textContent = `${formatNumber(filtered.length)} / ${formatNumber(state.prompts.length)}개`;
+
+    if (!state.prompts.length) {
+      els.list.innerHTML = `
+        <div class="empty">
+          <div>
+            <strong>아직 저장된 프롬프트가 없습니다.</strong>
+            <span>새 항목에서 첫 프롬프트를 저장하세요.</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    if (!filtered.length) {
+      els.list.innerHTML = `
+        <div class="empty">
+          <div>
+            <strong>검색 결과가 없습니다.</strong>
+            <span>제목이나 태그를 바꿔보세요.</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    els.list.innerHTML = filtered.map(renderCard).join("");
+  }
+
+  function renderTags() {
+    const tagCounts = new Map();
+    state.prompts.forEach((prompt) => {
+      prompt.tags.forEach((tag) => {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      });
+    });
+
+    const tags = [...tagCounts.entries()].sort((a, b) => a[0].localeCompare(b[0], "ko"));
+    const allClass = state.activeTag ? "tag-chip" : "tag-chip active";
+    const buttons = [
+      `<button class="${allClass}" data-tag="" type="button">전체 <span>${formatNumber(state.prompts.length)}</span></button>`
+    ];
+
+    tags.forEach(([tag, count]) => {
+      const active = state.activeTag.toLowerCase() === tag.toLowerCase() ? " active" : "";
+      buttons.push(`<button class="tag-chip${active}" data-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)} <span>${formatNumber(count)}</span></button>`);
+    });
+
+    els.tagStrip.innerHTML = buttons.join("");
+  }
+
+  function renderCard(prompt) {
+    const tags = prompt.tags.length
+      ? prompt.tags.map((tag) => {
+          const active = state.activeTag.toLowerCase() === tag.toLowerCase() ? " active" : "";
+          return `<button class="card-tag${active}" data-card-tag="${escapeAttribute(tag)}" type="button">${escapeHtml(tag)}</button>`;
+        }).join("")
+      : `<span class="card-tag" aria-disabled="true">태그 없음</span>`;
+    const favoriteClass = prompt.favorite ? " favorite" : "";
+    const favoriteText = prompt.favorite ? "★" : "☆";
+    const favoriteTitle = prompt.favorite ? "즐겨찾기 해제" : "즐겨찾기";
+    const isJson = prompt.kind === "json";
+    const preview = isJson
+      ? `JSON 파일\n${prompt.fileName || makeJsonDownloadName(prompt)}\n${formatBytes(prompt.fileSize || byteLength(prompt.body))}`
+      : makePreview(prompt.body);
+    const meta = isJson
+      ? `<span class="type-badge">JSON</span> 수정 ${escapeHtml(formatDate(prompt.updatedAt))}`
+      : `수정 ${escapeHtml(formatDate(prompt.updatedAt))}`;
+    const sizeLabel = isJson
+      ? `파일 ${formatBytes(prompt.fileSize || byteLength(prompt.body))}`
+      : `본문 ${formatNumber(prompt.body.length)}자`;
+    const actions = isJson
+      ? `
+              <button class="btn small primary" data-action="download" type="button">다운로드</button>
+              <button class="btn small" data-action="edit" type="button">이름/태그</button>
+              <button class="btn small danger" data-action="delete" type="button">삭제</button>`
+      : `
+              <button class="btn small primary" data-action="copy" type="button">복사</button>
+              <button class="btn small" data-action="view" type="button">보기</button>
+              <button class="btn small" data-action="edit" type="button">수정</button>
+              <button class="btn small danger" data-action="delete" type="button">삭제</button>`;
+
+    return `
+      <article class="prompt-card${favoriteClass}" data-id="${escapeAttribute(prompt.id)}">
+        <div class="card-inner">
+          <div class="card-top">
+            <div class="card-title">
+              <h3>${escapeHtml(prompt.title)}</h3>
+              <div class="card-meta">${meta}</div>
+            </div>
+            <button class="btn icon${prompt.favorite ? " active" : ""}" data-action="favorite" type="button" title="${favoriteTitle}" aria-label="${favoriteTitle}">${favoriteText}</button>
+          </div>
+          <div class="card-tags">${tags}</div>
+          <div class="preview">${escapeHtml(preview)}</div>
+          <div class="card-bottom">
+            <span class="char-count">${sizeLabel}</span>
+            <div class="card-actions">
+${actions}
+            </div>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function getFilteredPrompts() {
+    const query = state.search.toLowerCase();
+    const activeTag = state.activeTag.toLowerCase();
+
+    return [...state.prompts]
+      .filter((prompt) => {
+        const matchesSearch = !query
+          || prompt.title.toLowerCase().includes(query)
+          || prompt.tags.some((tag) => tag.toLowerCase().includes(query));
+        const matchesTag = !activeTag || prompt.tags.some((tag) => tag.toLowerCase() === activeTag);
+        return matchesSearch && matchesTag;
+      })
+      .sort(sortPrompts);
+  }
+
+  function sortPrompts(a, b) {
+    if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+
+    if (state.sort === "title") {
+      return a.title.localeCompare(b.title, "ko");
+    }
+
+    if (state.sort === "created") {
+      return dateValue(b.createdAt) - dateValue(a.createdAt);
+    }
+
+    return dateValue(b.updatedAt) - dateValue(a.updatedAt);
+  }
+
+  async function copyPrompt(id, button) {
+    const prompt = state.prompts.find((item) => item.id === id);
+    if (!prompt) return;
+    try {
+      await copyText(prompt.body);
+      flashButton(button, "복사됨");
+      showToast("본문을 복사했습니다.");
+    } catch {
+      showToast("복사하지 못했습니다. 보기에서 본문을 선택해주세요.");
+    }
+  }
+
+  async function copyViewingPrompt(button) {
+    const prompt = state.prompts.find((item) => item.id === state.viewingId);
+    if (!prompt) return;
+    try {
+      await copyText(prompt.body);
+      flashButton(button, "복사됨");
+      showToast("본문을 복사했습니다.");
+    } catch {
+      showToast("복사하지 못했습니다. 본문을 선택해주세요.");
+    }
+  }
+
+  function downloadJsonPrompt(id) {
+    const prompt = state.prompts.find((item) => item.id === id);
+    if (!prompt || prompt.kind !== "json") return;
+
+    const blob = new Blob([prompt.body], { type: prompt.mimeType || "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = makeJsonDownloadName(prompt);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast("JSON 파일을 다운로드했습니다.");
+  }
+
+  function openPrompt(id) {
+    const prompt = state.prompts.find((item) => item.id === id);
+    if (!prompt) return;
+
+    state.viewingId = id;
+    els.viewTitle.textContent = prompt.title;
+    els.viewMeta.textContent = `저장 ${formatDate(prompt.createdAt)} · 수정 ${formatDate(prompt.updatedAt)}`;
+    els.viewBody.textContent = prompt.body;
+    els.viewCounter.textContent = `${formatNumber(prompt.body.length)}자`;
+    els.viewTags.innerHTML = prompt.tags.map((tag) => `<span class="card-tag">${escapeHtml(tag)}</span>`).join("");
+
+    if (typeof els.dialog.showModal === "function") {
+      els.dialog.showModal();
+    } else {
+      els.dialog.setAttribute("open", "");
+    }
+  }
+
+  function startEdit(id) {
+    const prompt = state.prompts.find((item) => item.id === id);
+    if (!prompt) return;
+
+    if (prompt.kind === "json") {
+      state.pendingJsonFile = null;
+      state.jsonEditingId = id;
+      openJsonDialog({
+        title: prompt.title,
+        tags: prompt.tags.join(", "),
+        fileName: prompt.fileName || makeJsonDownloadName(prompt),
+        fileSize: prompt.fileSize || byteLength(prompt.body),
+        mode: "edit"
+      });
+      return;
+    }
+
+    state.editingId = id;
+    els.editorTitle.textContent = "항목 수정";
+    els.saveBtn.textContent = "수정 저장";
+    els.title.value = prompt.title;
+    els.tags.value = prompt.tags.join(", ");
+    els.body.value = prompt.body;
+    updateBodyCounter();
+    els.title.focus();
+    document.querySelector(".composer").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function removePrompt(id) {
+    const prompt = state.prompts.find((item) => item.id === id);
+    if (!prompt) return;
+
+    if (!confirm(`"${prompt.title}" 항목을 삭제할까요?`)) return;
+
+    await deletePrompt(id);
+    if (state.editingId === id) resetForm();
+    await loadPrompts();
+    render();
+    showToast("삭제했습니다.");
+  }
+
+  async function toggleFavorite(id) {
+    const prompt = state.prompts.find((item) => item.id === id);
+    if (!prompt) return;
+
+    prompt.favorite = !prompt.favorite;
+    prompt.updatedAt = new Date().toISOString();
+    await putPrompt(prompt);
+    await loadPrompts();
+    render();
+  }
+
+  function parseTags(value) {
+    const seen = new Set();
+    const tags = [];
+
+    String(value || "")
+      .split(",")
+      .map((tag) => tag.trim().replace(/\s+/g, " "))
+      .filter(Boolean)
+      .forEach((tag) => {
+        const key = tag.toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          tags.push(tag);
+        }
+      });
+
+    return tags;
+  }
+
+  function sanitizePrompt(raw) {
+    if (!raw || typeof raw !== "object") return null;
+
+    const now = new Date().toISOString();
+    const title = String(raw.title || "제목 없음").trim() || "제목 없음";
+    const body = String(raw.body || "");
+    const tags = Array.isArray(raw.tags) ? parseTags(raw.tags.join(",")) : parseTags(raw.tags);
+    const kind = raw.kind === "json" || raw.type === "json" ? "json" : "text";
+
+    return {
+      id: String(raw.id || createId()),
+      kind,
+      title,
+      body,
+      tags,
+      favorite: Boolean(raw.favorite),
+      fileName: kind === "json" ? String(raw.fileName || raw.name || `${title}.json`) : "",
+      mimeType: kind === "json" ? String(raw.mimeType || "application/json") : "",
+      fileSize: kind === "json" ? Number(raw.fileSize || byteLength(body)) : 0,
+      createdAt: isValidDate(raw.createdAt) ? raw.createdAt : now,
+      updatedAt: isValidDate(raw.updatedAt) ? raw.updatedAt : now
+    };
+  }
+
+  function sanitizeImportedPrompt(raw) {
+    const item = sanitizePrompt(raw);
+    if (!item) return null;
+    item.id = createId();
+    item.createdAt = isValidDate(raw.createdAt) ? raw.createdAt : new Date().toISOString();
+    item.updatedAt = isValidDate(raw.updatedAt) ? raw.updatedAt : item.createdAt;
+    return item;
+  }
+
+  async function exportPrompts() {
+    const payload = {
+      app: "prompt-vault",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      items: state.prompts
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `prompt-vault-backup-${makeDateStamp()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast("백업 파일을 만들었습니다.");
+  }
+
+  async function importPrompts(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
+
+      if (!Array.isArray(rawItems)) {
+        showToast("백업 JSON 파일이 아닙니다. 일반 JSON은 JSON 추가를 사용해주세요.");
+        return;
+      }
+
+      const fingerprints = new Set(state.prompts.map(fingerprintPrompt));
+      const imported = [];
+      let skipped = 0;
+
+      rawItems.forEach((raw) => {
+        const item = sanitizeImportedPrompt(raw);
+        if (!item || !item.body.trim()) {
+          skipped += 1;
+          return;
+        }
+        const fingerprint = fingerprintPrompt(item);
+        if (fingerprints.has(fingerprint)) {
+          skipped += 1;
+          return;
+        }
+        fingerprints.add(fingerprint);
+        imported.push(item);
+      });
+
+      if (!imported.length) {
+        showToast(skipped ? "새로 추가할 항목이 없습니다." : "불러올 항목이 없습니다.");
+        return;
+      }
+
+      await putPrompts(imported);
+      await loadPrompts();
+      render();
+      showToast(`${formatNumber(imported.length)}개를 불러왔습니다.`);
+    } catch (error) {
+      console.error(error);
+      showToast("JSON 파일을 읽지 못했습니다.");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
+  async function clearAllPrompts() {
+    if (!state.prompts.length) {
+      showToast("삭제할 항목이 없습니다.");
+      return;
+    }
+
+    if (!confirm(`저장된 ${state.prompts.length}개 항목을 모두 삭제할까요?`)) return;
+
+    await clearStore();
+    resetForm();
+    state.activeTag = "";
+    state.search = "";
+    els.search.value = "";
+    await loadPrompts();
+    render();
+    showToast("모든 항목을 삭제했습니다.");
+  }
+
+  function makePreview(body) {
+    const trimmed = String(body || "").trim();
+    if (!trimmed) return "";
+    return trimmed.length > PREVIEW_LIMIT ? `${trimmed.slice(0, PREVIEW_LIMIT)}...` : trimmed;
+  }
+
+  function stripJsonExtension(fileName) {
+    return String(fileName || "data.json").replace(/\.json$/i, "");
+  }
+
+  function makeJsonDownloadName(prompt) {
+    const baseName = sanitizeFileName(prompt.title || prompt.fileName || "data");
+    return /\.json$/i.test(baseName) ? baseName : `${baseName}.json`;
+  }
+
+  function sanitizeFileName(value) {
+    const cleaned = String(value || "data")
+      .trim()
+      .replace(/[\\/:*?"<>|]/g, "_")
+      .replace(/\s+/g, " ");
+    return cleaned || "data";
+  }
+
+  function byteLength(text) {
+    return new Blob([String(text || "")]).size;
+  }
+
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch {
+        // Fall back for file:// previews and browsers with stricter clipboard permission prompts.
+      }
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand("copy");
+    textarea.remove();
+    if (!copied) throw new Error("copy failed");
+  }
+
+  function flashButton(button, text) {
+    if (!button) return;
+    const original = button.textContent;
+    button.textContent = text;
+    button.disabled = true;
+    window.setTimeout(() => {
+      button.textContent = original;
+      button.disabled = false;
+    }, 900);
+  }
+
+  async function updateStorageInfo() {
+    if (!navigator.storage || !navigator.storage.estimate) {
+      els.storageInfo.textContent = "브라우저 저장소";
+      return;
+    }
+
+    try {
+      const estimate = await navigator.storage.estimate();
+      const usage = estimate.usage || 0;
+      const quota = estimate.quota || 0;
+      els.storageInfo.textContent = quota
+        ? `${formatBytes(usage)} / ${formatBytes(quota)}`
+        : formatBytes(usage);
+    } catch {
+      els.storageInfo.textContent = "브라우저 저장소";
+    }
+  }
+
+  function showToast(message) {
+    window.clearTimeout(state.toastTimer);
+    els.toast.textContent = message;
+    els.toast.classList.add("show");
+    state.toastTimer = window.setTimeout(() => {
+      els.toast.classList.remove("show");
+    }, 1800);
+  }
+
+  function createId() {
+    if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    return `prompt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function fingerprintPrompt(prompt) {
+    return `${prompt.kind || "text"}::${prompt.title.trim().toLowerCase()}::${prompt.body.trim()}`;
+  }
+
+  function dateValue(value) {
+    const time = new Date(value).getTime();
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function isValidDate(value) {
+    return value && Number.isFinite(new Date(value).getTime());
+  }
+
+  function formatDate(value) {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return "-";
+    return date.toLocaleString("ko-KR", {
+      year: "2-digit",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function formatNumber(value) {
+    return new Intl.NumberFormat("ko-KR").format(value);
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    const value = bytes / Math.pow(1024, index);
+    return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+  }
+
+  function makeDateStamp() {
+    const date = new Date();
+    const pad = (value) => String(value).padStart(2, "0");
+    return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}`;
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value).replace(/`/g, "&#096;");
+  }
+})();
+</script>
+</body>
+</html>
