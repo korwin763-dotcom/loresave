@@ -1,7 +1,7 @@
 {
   "app": "prompt-vault",
   "version": 1,
-  "savedAt": "2026-05-06T22:18:46.684Z",
+  "savedAt": "2026-05-06T22:24:10.775Z",
   "items": [
     {
       "id": "05480e1d-ad8a-4ede-87c7-51d446a7afab",
@@ -226,15 +226,14 @@
       "tags": [
         "로어북",
         "후타나리",
-        "18",
-        "후타"
+        "18"
       ],
       "favorite": false,
       "fileName": "Nocturnal Genital Metamorphosis .json",
       "mimeType": "application/json",
       "fileSize": 3466,
       "createdAt": "2026-05-06T21:43:17.232Z",
-      "updatedAt": "2026-05-06T21:43:17.232Z"
+      "updatedAt": "2026-05-06T22:24:07.201Z"
     },
     {
       "id": "e4aca45f-964e-4727-b299-f7d0030f51ab",
