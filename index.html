@@ -2090,14 +2090,14 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     };
     await putPrompt(item);
     const edited = Boolean(previous);
-    resetForm();
+    resetForm({ collapseComposer: edited });
     await loadPrompts();
     render();
     showToast(edited ? "수정했습니다." : "저장했습니다.");
     scheduleGithubAutoSave();
   }
 
-  function resetForm() {
+  function resetForm(options = {}) {
     state.editingId = "";
     els.editorTitle.textContent = "새 항목";
     els.saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 저장';
@@ -2105,6 +2105,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     els.tags.value = "";
     els.body.value = "";
     updateBodyCounter();
+    if (options.collapseComposer) els.composerDetails.removeAttribute("open");
   }
 
   function updateBodyCounter() {
