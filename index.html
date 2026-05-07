@@ -931,6 +931,99 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
 .prompt-card:nth-child(7) { animation-delay: 0.24s; }
 .prompt-card:nth-child(8) { animation-delay: 0.28s; }
 .prompt-card:nth-child(n+9) { animation-delay: 0.3s; }
+
+/* ─── BULK SELECT MODE ─── */
+.bulk-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 15;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bulk-bar.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.bulk-bar .bulk-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.select-mode .prompt-card {
+  cursor: pointer;
+  user-select: none;
+}
+.select-mode .prompt-card .card-inner { padding-left: 38px; position: relative; }
+.select-mode .prompt-card .card-inner::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+.select-mode .prompt-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+.select-mode .prompt-card.selected .card-inner::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--bg-raised);
+}
+
+/* ─── DRAG HANDLE ─── */
+.drag-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: var(--text-tertiary);
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+  border-right: 1px solid var(--border);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.drag-handle:hover { opacity: 1; color: var(--text-secondary); }
+.drag-handle:active { cursor: grabbing; }
+.drag-handle svg { width: 14px; height: 14px; }
+.manual-sort .prompt-card { position: relative; }
+.manual-sort .prompt-card .card-inner { padding-left: 36px; }
+.manual-sort .drag-handle { display: flex; }
+.manual-sort .prompt-card.dragging { opacity: 0.4; }
+.manual-sort .prompt-card.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+/* ─── TOKEN BADGE ─── */
+.token-badge {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 1px 6px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
 </style>
 </head>
 <body>
@@ -1023,6 +1116,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
             <option value="updated">최근 수정순</option>
             <option value="created">최근 저장순</option>
             <option value="title">제목순</option>
+            <option value="manual">사용자 정렬순</option>
           </select>
           <div class="search-actions">
             <button class="btn" id="clearSearchBtn" type="button">초기화</button>
@@ -1062,7 +1156,13 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
 
       <div class="list-status">
         <span id="resultCount">0개</span>
-        <span id="storageInfo">저장소 확인 중</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <button class="btn small" id="selectModeBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            선택
+          </button>
+          <span id="storageInfo">저장소 확인 중</span>
+        </span>
       </div>
 
       <div class="prompt-list" id="promptList"></div>
@@ -1178,6 +1278,14 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
   </div>
 </dialog>
 
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-count" id="bulkCount">0개 선택</span>
+  <button class="btn small" id="bulkTagBtn" type="button">태그 추가</button>
+  <button class="btn small" id="bulkExportBtn" type="button">선택 내보내기</button>
+  <button class="btn small danger" id="bulkDeleteBtn" type="button">선택 삭제</button>
+  <button class="btn small ghost" id="bulkCancelBtn" type="button">취소</button>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1241,10 +1349,16 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       charName: "",
       lastCount: 0
     },
-    toastTimer: null
+    toastTimer: null,
+    selectMode: false,
+    selectedIds: new Set(),
+    manualOrder: [],
+    dragId: null
   };
 
   const $ = (selector) => document.querySelector(selector);
+
+  const MANUAL_ORDER_KEY = "prompt-vault-manual-order";
 
   const els = {
     composerDetails: $("#composerDetails"),
@@ -1329,6 +1443,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     loadTrashItems();
     loadTransformConfig();
     loadGithubConfig();
+    loadManualOrder();
     try {
       state.db = await openDatabase();
       await loadPrompts();
@@ -1384,6 +1499,11 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     els.emptyTrash.addEventListener("click", emptyTrash);
     els.trashList.addEventListener("click", handleTrashClick);
     els.clearAllBtn.addEventListener("click", clearAllPrompts);
+    $("#selectModeBtn").addEventListener("click", toggleSelectMode);
+    $("#bulkDeleteBtn").addEventListener("click", bulkDelete);
+    $("#bulkTagBtn").addEventListener("click", bulkAddTag);
+    $("#bulkExportBtn").addEventListener("click", bulkExport);
+    $("#bulkCancelBtn").addEventListener("click", () => { state.selectMode = false; state.selectedIds.clear(); render(); updateBulkBar(); });
     els.closeDialog.addEventListener("click", () => els.dialog.close());
     els.copyDialog.addEventListener("click", () => copyViewingPrompt(els.copyDialog));
     els.applyReplace.addEventListener("click", applyPromptTransform);
@@ -1942,7 +2062,9 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
   }
 
   function updateBodyCounter() {
-    els.bodyCounter.textContent = `${formatNumber(els.body.value.length)}자`;
+    const len = els.body.value.length;
+    const tokens = estimateTokens(els.body.value);
+    els.bodyCounter.textContent = `${formatNumber(len)}자 · ~${formatNumber(tokens)}tk`;
   }
 
   async function handleJsonFileSelect(event) {
@@ -2045,6 +2167,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     else if (action === "download") downloadJsonPrompt(id);
     else if (action === "view") openPrompt(id);
     else if (action === "edit") startEdit(id);
+    else if (action === "duplicate") await duplicatePrompt(id);
     else if (action === "delete") await removePrompt(id);
     else if (action === "favorite") await toggleFavorite(id);
   }
@@ -2182,14 +2305,18 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     const meta = isJson
       ? `<span class="type-badge">JSON</span> 수정 ${escapeHtml(formatDate(prompt.updatedAt))}`
       : `수정 ${escapeHtml(formatDate(prompt.updatedAt))}`;
+    const tkEst = isJson ? 0 : estimateTokens(prompt.body);
     const sizeLabel = isJson
       ? `파일 ${formatBytes(prompt.fileSize || byteLength(prompt.body))}`
       : `본문 ${formatNumber(prompt.body.length)}자`;
+    const tokenBadge = !isJson ? `<span class="token-badge">~${formatNumber(tkEst)}tk</span>` : '';
     const copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     const actions = isJson
       ? `<button class="btn small primary" data-action="download" type="button">다운로드</button><button class="btn small" data-action="edit" type="button">이름/태그</button><button class="btn small danger" data-action="delete" type="button">삭제</button>`
-      : `<button class="btn small primary" data-action="copy" type="button">${copyIcon} 복사</button><button class="btn small" data-action="view" type="button">보기</button><button class="btn small" data-action="edit" type="button">수정</button><button class="btn small danger" data-action="delete" type="button">삭제</button>`;
-    return `<article class="prompt-card${favoriteClass}" data-id="${escapeAttribute(prompt.id)}"><div class="card-inner"><div class="card-top"><div class="card-title"><h3>${escapeHtml(prompt.title)}</h3><div class="card-meta">${meta}</div></div><button class="btn icon${prompt.favorite ? " active" : ""}" data-action="favorite" type="button" title="${favoriteTitle}" aria-label="${favoriteTitle}">${favoriteText}</button></div><div class="card-tags">${tags}</div><div class="preview">${escapeHtml(preview)}</div><div class="card-bottom"><span class="char-count">${sizeLabel}</span><div class="card-actions">${actions}</div></div></div></article>`;
+      : `<button class="btn small primary" data-action="copy" type="button">${copyIcon} 복사</button><button class="btn small" data-action="view" type="button">보기</button><button class="btn small" data-action="edit" type="button">수정</button><button class="btn small" data-action="duplicate" type="button">복제</button><button class="btn small danger" data-action="delete" type="button">삭제</button>`;
+    const dragHandle = '<div class="drag-handle" draggable="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></div>';
+    const selectedClass = state.selectedIds.has(prompt.id) ? ' selected' : '';
+    return `<article class="prompt-card${favoriteClass}${selectedClass}" data-id="${escapeAttribute(prompt.id)}">${dragHandle}<div class="card-inner"><div class="card-top"><div class="card-title"><h3>${escapeHtml(prompt.title)}</h3><div class="card-meta">${meta}</div></div><button class="btn icon${prompt.favorite ? " active" : ""}" data-action="favorite" type="button" title="${favoriteTitle}" aria-label="${favoriteTitle}">${favoriteText}</button></div><div class="card-tags">${tags}</div><div class="preview">${escapeHtml(preview)}</div><div class="card-bottom"><span class="char-count">${sizeLabel} ${tokenBadge}</span><div class="card-actions">${actions}</div></div></div></article>`;
   }
 
   function getFilteredPrompts() {
@@ -2207,6 +2334,14 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
 
   function sortPrompts(a, b) {
     if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+    if (state.sort === "manual") {
+      const ai = state.manualOrder.indexOf(a.id);
+      const bi = state.manualOrder.indexOf(b.id);
+      const aN = ai < 0 ? 999999 : ai;
+      const bN = bi < 0 ? 999999 : bi;
+      if (aN !== bN) return aN - bN;
+      return dateValue(b.updatedAt) - dateValue(a.updatedAt);
+    }
     if (state.sort === "title") return a.title.localeCompare(b.title, "ko");
     if (state.sort === "created") return dateValue(b.createdAt) - dateValue(a.createdAt);
     return dateValue(b.updatedAt) - dateValue(a.updatedAt);
@@ -2279,7 +2414,8 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     const result = state.viewTransform.active ? getTransformResult(prompt.body) : { text: prompt.body, count: 0 };
     state.viewTransform.lastCount = result.count;
     els.viewBody.textContent = result.text;
-    els.viewCounter.textContent = `${formatNumber(result.text.length)}자`;
+    const tkCount = estimateTokens(result.text);
+    els.viewCounter.textContent = `${formatNumber(result.text.length)}자 · ~${formatNumber(tkCount)}tk`;
     updateTransformStatus();
   }
 
@@ -2616,6 +2752,208 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
   function escapeRegExp(value) { return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 
   function escapeAttribute(value) { return escapeHtml(value).replace(/`/g, "&#096;"); }
+
+  /* ─── Token estimator ─── */
+  function estimateTokens(text) {
+    const str = String(text || "");
+    if (!str) return 0;
+    let tokens = 0;
+    for (let i = 0; i < str.length; i++) {
+      const code = str.charCodeAt(i);
+      if ((code >= 0x3000 && code <= 0x9FFF) || (code >= 0xAC00 && code <= 0xD7AF) || (code >= 0xF900 && code <= 0xFAFF)) {
+        tokens += 1.5;
+      } else if (code >= 0x20 && code <= 0x7E) {
+        tokens += 0.25;
+      } else {
+        tokens += 0.5;
+      }
+    }
+    return Math.ceil(tokens);
+  }
+
+  /* ─── Duplicate ─── */
+  async function duplicatePrompt(id) {
+    const prompt = state.prompts.find((item) => item.id === id);
+    if (!prompt) return;
+    const now = new Date().toISOString();
+    const newItem = {
+      ...structuredClone(prompt),
+      id: createId(),
+      title: prompt.title + " (복사)",
+      favorite: false,
+      createdAt: now,
+      updatedAt: now
+    };
+    await putPrompt(newItem);
+    await loadPrompts();
+    render();
+    showToast("복제했습니다.");
+    scheduleGithubAutoSave();
+  }
+
+  /* ─── Select mode & Bulk ops ─── */
+  function toggleSelectMode() {
+    state.selectMode = !state.selectMode;
+    state.selectedIds.clear();
+    els.list.classList.toggle("select-mode", state.selectMode);
+    $("#selectModeBtn").classList.toggle("primary", state.selectMode);
+    updateBulkBar();
+    render();
+  }
+
+  function updateBulkBar() {
+    const bar = $("#bulkBar");
+    const count = state.selectedIds.size;
+    bar.classList.toggle("visible", state.selectMode && count > 0);
+    $("#bulkCount").textContent = `${formatNumber(count)}개 선택`;
+  }
+
+  async function bulkDelete() {
+    const ids = [...state.selectedIds];
+    if (!ids.length) return;
+    if (!confirm(`선택한 ${formatNumber(ids.length)}개 항목을 삭제할까요?`)) return;
+    const deletedAt = new Date().toISOString();
+    const items = ids.map((id) => state.prompts.find((p) => p.id === id)).filter(Boolean);
+    moveToTrash(items, deletedAt);
+    markDeleted(ids, deletedAt);
+    for (const id of ids) await deletePrompt(id);
+    if (ids.includes(state.editingId)) resetForm();
+    state.selectedIds.clear();
+    state.selectMode = false;
+    els.list.classList.remove("select-mode");
+    $("#selectModeBtn").classList.remove("primary");
+    updateBulkBar();
+    await loadPrompts();
+    render();
+    showToast(`${formatNumber(ids.length)}개를 삭제했습니다.`);
+    scheduleGithubAutoSave();
+  }
+
+  async function bulkAddTag() {
+    const ids = [...state.selectedIds];
+    if (!ids.length) return;
+    const tag = prompt(`${formatNumber(ids.length)}개 항목에 추가할 태그를 입력하세요:`);
+    if (!tag || !tag.trim()) return;
+    const cleanTag = tag.trim();
+    let changed = 0;
+    for (const id of ids) {
+      const item = state.prompts.find((p) => p.id === id);
+      if (!item) continue;
+      if (!item.tags.some((t) => t.toLowerCase() === cleanTag.toLowerCase())) {
+        item.tags.push(cleanTag);
+        item.updatedAt = new Date().toISOString();
+        await putPrompt(item);
+        changed++;
+      }
+    }
+    state.selectedIds.clear();
+    state.selectMode = false;
+    els.list.classList.remove("select-mode");
+    $("#selectModeBtn").classList.remove("primary");
+    updateBulkBar();
+    await loadPrompts();
+    render();
+    showToast(`${formatNumber(changed)}개 항목에 "${cleanTag}" 태그를 추가했습니다.`);
+    if (changed) scheduleGithubAutoSave();
+  }
+
+  function bulkExport() {
+    const ids = [...state.selectedIds];
+    if (!ids.length) return;
+    const items = ids.map((id) => state.prompts.find((p) => p.id === id)).filter(Boolean);
+    const payload = {
+      app: "prompt-vault", appVersion: APP_VERSION, version: DATA_VERSION,
+      exportedAt: new Date().toISOString(), items,
+      deletedItems: {}, trashItems: {}
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `prompt-vault-selected-${formatNumber(items.length)}-${makeDateStamp()}.json`;
+    document.body.appendChild(link); link.click(); link.remove();
+    URL.revokeObjectURL(url);
+    state.selectedIds.clear();
+    state.selectMode = false;
+    els.list.classList.remove("select-mode");
+    $("#selectModeBtn").classList.remove("primary");
+    updateBulkBar();
+    render();
+    showToast(`${formatNumber(items.length)}개를 내보냈습니다.`);
+  }
+
+  /* ─── Manual order ─── */
+  function loadManualOrder() {
+    try { state.manualOrder = JSON.parse(localStorage.getItem(MANUAL_ORDER_KEY) || "[]"); }
+    catch { state.manualOrder = []; }
+  }
+
+  function saveManualOrder() {
+    localStorage.setItem(MANUAL_ORDER_KEY, JSON.stringify(state.manualOrder));
+  }
+
+  function initDragListeners() {
+    els.list.addEventListener("dragstart", (e) => {
+      const card = e.target.closest(".prompt-card[data-id]");
+      if (!card || state.sort !== "manual") { e.preventDefault(); return; }
+      state.dragId = card.dataset.id;
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+    });
+    els.list.addEventListener("dragover", (e) => {
+      if (!state.dragId || state.sort !== "manual") return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const card = e.target.closest(".prompt-card[data-id]");
+      els.list.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
+      if (card && card.dataset.id !== state.dragId) card.classList.add("drag-over");
+    });
+    els.list.addEventListener("dragleave", (e) => {
+      const card = e.target.closest(".prompt-card[data-id]");
+      if (card) card.classList.remove("drag-over");
+    });
+    els.list.addEventListener("drop", (e) => {
+      e.preventDefault();
+      els.list.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
+      const card = e.target.closest(".prompt-card[data-id]");
+      if (!card || !state.dragId || card.dataset.id === state.dragId) return;
+      const filtered = getFilteredPrompts();
+      const currentOrder = filtered.map((p) => p.id);
+      const fromIdx = currentOrder.indexOf(state.dragId);
+      const toIdx = currentOrder.indexOf(card.dataset.id);
+      if (fromIdx < 0 || toIdx < 0) return;
+      currentOrder.splice(fromIdx, 1);
+      currentOrder.splice(toIdx, 0, state.dragId);
+      state.manualOrder = currentOrder;
+      saveManualOrder();
+      render();
+    });
+    els.list.addEventListener("dragend", () => {
+      state.dragId = null;
+      els.list.querySelectorAll(".dragging").forEach((el) => el.classList.remove("dragging"));
+      els.list.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
+    });
+  }
+  initDragListeners();
+
+  /* ─── Selection click handler (works with select-mode) ─── */
+  els.list.addEventListener("click", (e) => {
+    if (!state.selectMode) return;
+    const card = e.target.closest(".prompt-card[data-id]");
+    if (!card) return;
+    if (e.target.closest("button[data-action]") || e.target.closest("button[data-card-tag]")) return;
+    const id = card.dataset.id;
+    if (state.selectedIds.has(id)) state.selectedIds.delete(id);
+    else state.selectedIds.add(id);
+    card.classList.toggle("selected", state.selectedIds.has(id));
+    updateBulkBar();
+  });
+
+  /* ─── Update sort class on list ─── */
+  const origSortChange = els.sort.onchange;
+  els.sort.addEventListener("change", () => {
+    els.list.classList.toggle("manual-sort", els.sort.value === "manual");
+  });
 })();
 </script>
 </body>
