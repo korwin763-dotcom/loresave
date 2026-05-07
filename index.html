@@ -1150,6 +1150,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
               저장
             </button>
             <button class="btn" id="resetBtn" type="button">새로 작성</button>
+            <button class="btn" id="closeComposerBtn" type="button">닫기</button>
           </div>
         </form>
       </details>
@@ -1373,6 +1374,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     bodyCounter: $("#bodyCounter"),
     saveBtn: $("#saveBtn"),
     resetBtn: $("#resetBtn"),
+    closeComposer: $("#closeComposerBtn"),
     search: $("#searchInput"),
     sort: $("#sortSelect"),
     clearSearch: $("#clearSearchBtn"),
@@ -1461,6 +1463,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
   function bindEvents() {
     els.form.addEventListener("submit", saveFromForm);
     els.resetBtn.addEventListener("click", resetForm);
+    els.closeComposer.addEventListener("click", closeComposer);
     els.body.addEventListener("input", updateBodyCounter);
     const mobileComposer = window.matchMedia(MOBILE_COMPOSER_QUERY);
     if (typeof mobileComposer.addEventListener === "function") {
@@ -2106,6 +2109,21 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     els.body.value = "";
     updateBodyCounter();
     if (options.collapseComposer) els.composerDetails.removeAttribute("open");
+  }
+
+  function closeComposer() {
+    if (isComposerDirty() && !confirm("작성 중인 내용을 닫을까요? 저장하지 않은 변경은 사라집니다.")) return;
+    resetForm({ collapseComposer: true });
+  }
+
+  function isComposerDirty() {
+    const title = els.title.value.trim();
+    const body = els.body.value;
+    const tags = parseTags(els.tags.value);
+    if (!state.editingId) return Boolean(title || body.trim() || tags.length);
+    const prompt = state.prompts.find((item) => item.id === state.editingId);
+    if (!prompt) return Boolean(title || body.trim() || tags.length);
+    return title !== prompt.title || body !== prompt.body || tags.join("\n") !== prompt.tags.join("\n");
   }
 
   function updateBodyCounter() {
