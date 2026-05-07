@@ -1320,6 +1320,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
   const GITHUB_CONFIG_KEY = "prompt-vault-github-config";
   const DELETED_ITEMS_KEY = "prompt-vault-deleted-items";
   const TRASH_ITEMS_KEY = "prompt-vault-trash-items";
+  const PURGED_TRASH_ITEMS_KEY = "prompt-vault-purged-trash-items";
   const TRANSFORM_CONFIG_KEY = "prompt-vault-transform-config";
   const AUTO_SAVE_DELAY = 2600;
   const MOBILE_COMPOSER_QUERY = "(max-width: 980px)";
@@ -1329,6 +1330,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     prompts: [],
     deletedItems: {},
     trashItems: {},
+    purgedTrashItems: {},
     activeTags: [],
     editingId: "",
     viewingId: "",
@@ -1441,6 +1443,7 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     syncComposerDisclosure();
     loadDeletedItems();
     loadTrashItems();
+    loadPurgedTrashItems();
     loadTransformConfig();
     loadGithubConfig();
     loadManualOrder();
@@ -1597,6 +1600,13 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
 
   function saveTrashItems() { localStorage.setItem(TRASH_ITEMS_KEY, JSON.stringify(sortTrashItems(state.trashItems))); }
 
+  function loadPurgedTrashItems() {
+    try { state.purgedTrashItems = sanitizeDeletedItems(JSON.parse(localStorage.getItem(PURGED_TRASH_ITEMS_KEY) || "{}")); }
+    catch { state.purgedTrashItems = {}; }
+  }
+
+  function savePurgedTrashItems() { localStorage.setItem(PURGED_TRASH_ITEMS_KEY, JSON.stringify(sortDeletedItems(state.purgedTrashItems))); }
+
   function loadTransformConfig() {
     try {
       const saved = JSON.parse(localStorage.getItem(TRANSFORM_CONFIG_KEY) || "{}");
@@ -1636,8 +1646,10 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
   function moveToTrash(items, deletedAt = new Date().toISOString()) {
     items.map(sanitizePrompt).filter(Boolean).forEach((item) => {
       state.trashItems[item.id] = { ...item, deletedAt };
+      delete state.purgedTrashItems[item.id];
     });
     saveTrashItems();
+    savePurgedTrashItems();
   }
 
   async function putPrompt(prompt) { await withStore("readwrite", (store) => store.put(prompt)); }
@@ -1788,11 +1800,13 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       state.githubSha = remote.sha || "";
       const text = decodeBase64(remote.content || "");
       const remoteVault = parseVaultPayload(JSON.parse(text));
-      const merged = mergeVaultData(state.prompts, remoteVault.items, state.deletedItems, remoteVault.deletedItems, state.trashItems, remoteVault.trashItems);
+      const merged = mergeVaultData(state.prompts, remoteVault.items, state.deletedItems, remoteVault.deletedItems, state.trashItems, remoteVault.trashItems, state.purgedTrashItems, remoteVault.purgedTrashItems);
       state.deletedItems = merged.deletedItems;
       state.trashItems = merged.trashItems;
+      state.purgedTrashItems = merged.purgedTrashItems;
       saveDeletedItems();
       saveTrashItems();
+      savePurgedTrashItems();
       await replaceAllPrompts(merged.items);
       resetForm();
       state.activeTags = [];
@@ -1803,9 +1817,15 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       updateGithubStatus(`GitHub에서 ${formatNumber(merged.items.length)}개를 불러왔습니다. ${formatDate(new Date().toISOString())}`);
       showToast("GitHub 데이터를 불러왔습니다.");
     } catch (error) {
-      console.error(error);
-      showToast(githubErrorMessage(error, "GitHub에서 불러오지 못했습니다."));
-      updateGithubStatus("GitHub 불러오기에 실패했습니다.");
+      if (error.status === 404) {
+        state.githubSha = "";
+        updateGithubStatus("GitHub data 파일이 아직 없습니다. 먼저 GitHub에 저장하면 새로 만듭니다.");
+        showToast("아직 불러올 GitHub data 파일이 없습니다.");
+      } else {
+        console.error(error);
+        showToast(githubErrorMessage(error, "GitHub에서 불러오지 못했습니다."));
+        updateGithubStatus("GitHub 불러오기에 실패했습니다.");
+      }
     } finally {
       state.suppressAutoSave = false;
       setGithubBusy(false);
@@ -1834,22 +1854,24 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       state.githubConfig = config;
       localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
       let sha = "";
-      let remoteVault = { items: [], deletedItems: {}, trashItems: {} };
+      let remoteVault = { items: [], deletedItems: {}, trashItems: {}, purgedTrashItems: {} };
       try {
         const remote = await githubRequest(config, "GET");
         sha = remote.sha || "";
         state.githubSha = sha;
         remoteVault = parseVaultPayload(JSON.parse(decodeBase64(remote.content || "")));
       } catch (error) { if (error.status !== 404) throw error; state.githubSha = ""; }
-      const merged = mergeVaultData(state.prompts, remoteVault.items, state.deletedItems, remoteVault.deletedItems, state.trashItems, remoteVault.trashItems);
+      const merged = mergeVaultData(state.prompts, remoteVault.items, state.deletedItems, remoteVault.deletedItems, state.trashItems, remoteVault.trashItems, state.purgedTrashItems, remoteVault.purgedTrashItems);
       state.deletedItems = merged.deletedItems;
       state.trashItems = merged.trashItems;
+      state.purgedTrashItems = merged.purgedTrashItems;
       saveDeletedItems();
       saveTrashItems();
+      savePurgedTrashItems();
       await replaceAllPrompts(merged.items);
       await loadPrompts();
       render();
-      const payload = buildVaultPayload(merged.items, merged.deletedItems, merged.trashItems);
+      const payload = buildVaultPayload(merged.items, merged.deletedItems, merged.trashItems, merged.purgedTrashItems);
       const body = { message: `Update prompt vault data ${makeDateStamp()}`, content: encodeBase64(JSON.stringify(payload, null, 2)), branch: config.branch };
       if (sha) body.sha = sha;
       const result = await githubRequest(config, "PUT", body);
@@ -1906,7 +1928,8 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     return {
       items: rawItems.map(sanitizePrompt).filter((item) => item && item.body.trim()),
       deletedItems: Array.isArray(parsed) ? {} : sanitizeDeletedItems(parsed.deletedItems),
-      trashItems: Array.isArray(parsed) ? {} : sanitizeTrashItems(parsed.trashItems)
+      trashItems: Array.isArray(parsed) ? {} : sanitizeTrashItems(parsed.trashItems),
+      purgedTrashItems: Array.isArray(parsed) ? {} : sanitizeDeletedItems(parsed.purgedTrashItems)
     };
   }
 
@@ -1950,13 +1973,15 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     return result;
   }
 
-  function mergeTrashItems(deletedItems, activeItems, ...sets) {
+  function mergeTrashItems(deletedItems, activeItems, purgedTrashItems, ...sets) {
     const activeIds = new Set(activeItems.map((item) => item.id));
     const merged = {};
     sets.forEach((set) => {
       Object.entries(sanitizeTrashItems(set)).forEach(([id, item]) => {
         const deletedAt = deletedItems[id];
         if (!deletedAt || activeIds.has(id)) return;
+        const purgedAt = purgedTrashItems[id];
+        if (purgedAt && dateValue(purgedAt) >= dateValue(item.deletedAt)) return;
         const previous = merged[id];
         if (!previous || dateValue(item.deletedAt) >= dateValue(previous.deletedAt)) {
           merged[id] = { ...item, deletedAt };
@@ -1975,8 +2000,14 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     );
   }
 
-  function mergeVaultData(localItems, remoteItems, localDeleted, remoteDeleted, localTrash, remoteTrash) {
+  function makePurgedAt(items) {
+    const latestDeletedAt = Math.max(0, ...items.map((item) => dateValue(item && item.deletedAt)));
+    return new Date(Math.max(Date.now(), latestDeletedAt + 1)).toISOString();
+  }
+
+  function mergeVaultData(localItems, remoteItems, localDeleted, remoteDeleted, localTrash, remoteTrash, localPurged = {}, remotePurged = {}) {
     const deletedItems = mergeDeletedItems(remoteDeleted, localDeleted);
+    const purgedTrashItems = mergeDeletedItems(remotePurged, localPurged);
     const map = new Map();
     [...remoteItems, ...localItems].forEach((item) => {
       const existing = map.get(item.id);
@@ -1986,11 +2017,25 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       const deletedAt = deletedItems[item.id];
       return !deletedAt || dateValue(item.updatedAt) > dateValue(deletedAt);
     });
-    const trashItems = mergeTrashItems(deletedItems, items, localTrash, remoteTrash);
-    return { items, deletedItems, trashItems };
+    const prunedDeletedItems = { ...deletedItems };
+    const prunedPurgedTrashItems = { ...purgedTrashItems };
+    items.forEach((item) => {
+      const deletedAt = prunedDeletedItems[item.id];
+      if (deletedAt && dateValue(item.updatedAt) > dateValue(deletedAt)) {
+        delete prunedDeletedItems[item.id];
+        delete prunedPurgedTrashItems[item.id];
+      }
+    });
+    const trashItems = mergeTrashItems(prunedDeletedItems, items, prunedPurgedTrashItems, localTrash, remoteTrash);
+    return {
+      items,
+      deletedItems: sortDeletedItems(prunedDeletedItems),
+      trashItems,
+      purgedTrashItems: sortDeletedItems(prunedPurgedTrashItems)
+    };
   }
 
-  function buildVaultPayload(items, deletedItems, trashItems) {
+  function buildVaultPayload(items, deletedItems, trashItems, purgedTrashItems) {
     return {
       app: "prompt-vault",
       appVersion: APP_VERSION,
@@ -1999,7 +2044,8 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       savedAt: new Date().toISOString(),
       items,
       deletedItems: sortDeletedItems(deletedItems),
-      trashItems: sortTrashItems(trashItems)
+      trashItems: sortTrashItems(trashItems),
+      purgedTrashItems: sortDeletedItems(purgedTrashItems)
     };
   }
 
@@ -2238,7 +2284,8 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     restored.updatedAt = new Date().toISOString();
     delete state.trashItems[id];
     delete state.deletedItems[id];
-    saveTrashItems(); saveDeletedItems();
+    delete state.purgedTrashItems[id];
+    saveTrashItems(); saveDeletedItems(); savePurgedTrashItems();
     await putPrompt(restored); await loadPrompts(); render(); renderTrashDialog();
     showToast("휴지통에서 복구했습니다."); scheduleGithubAutoSave();
   }
@@ -2247,8 +2294,9 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     const item = state.trashItems[id];
     if (!item) return;
     if (!confirm(`"${item.title}" 항목을 휴지통에서 비울까요? 삭제 기록은 유지됩니다.`)) return;
+    state.purgedTrashItems[id] = makePurgedAt([item]);
     delete state.trashItems[id];
-    saveTrashItems(); render(); renderTrashDialog();
+    saveTrashItems(); savePurgedTrashItems(); render(); renderTrashDialog();
     showToast("휴지통에서 비웠습니다."); scheduleGithubAutoSave();
   }
 
@@ -2256,8 +2304,10 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
     const count = Object.keys(state.trashItems).length;
     if (!count) { showToast("휴지통이 비어 있습니다."); return; }
     if (!confirm(`휴지통의 ${formatNumber(count)}개 항목을 비울까요? 삭제 기록은 유지됩니다.`)) return;
+    const purgedAt = makePurgedAt(Object.values(state.trashItems));
+    Object.keys(state.trashItems).forEach((id) => { state.purgedTrashItems[id] = purgedAt; });
     state.trashItems = {};
-    saveTrashItems(); render(); renderTrashDialog();
+    saveTrashItems(); savePurgedTrashItems(); render(); renderTrashDialog();
     showToast("휴지통을 비웠습니다."); scheduleGithubAutoSave();
   }
 
@@ -2583,7 +2633,8 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       app: "prompt-vault", appVersion: APP_VERSION, version: DATA_VERSION,
       exportedAt: new Date().toISOString(), items: state.prompts,
       deletedItems: sortDeletedItems(state.deletedItems),
-      trashItems: sortTrashItems(state.trashItems)
+      trashItems: sortTrashItems(state.trashItems),
+      purgedTrashItems: sortDeletedItems(state.purgedTrashItems)
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -2602,6 +2653,12 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
       const parsed = JSON.parse(text);
       const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
       if (!Array.isArray(rawItems)) { showToast("백업 JSON 파일이 아닙니다. 일반 JSON은 JSON 추가를 사용해주세요."); return; }
+      const vault = parseVaultPayload(parsed);
+      const merged = mergeVaultData(state.prompts, vault.items, state.deletedItems, vault.deletedItems, state.trashItems, vault.trashItems, state.purgedTrashItems, vault.purgedTrashItems);
+      state.deletedItems = merged.deletedItems;
+      state.trashItems = merged.trashItems;
+      state.purgedTrashItems = merged.purgedTrashItems;
+      saveDeletedItems(); saveTrashItems(); savePurgedTrashItems();
       const fingerprints = new Set(state.prompts.map(fingerprintPrompt));
       const imported = [];
       let skipped = 0;
@@ -2612,8 +2669,17 @@ dialog::backdrop { background: var(--bg-overlay); backdrop-filter: blur(4px); -w
         if (fingerprints.has(fingerprint)) { skipped += 1; return; }
         fingerprints.add(fingerprint); imported.push(item);
       });
-      if (!imported.length) { showToast(skipped ? "새로 추가할 항목이 없습니다." : "불러올 항목이 없습니다."); return; }
-      await putPrompts(imported); await loadPrompts(); render();
+      if (!imported.length) {
+        const nextVault = mergeVaultData(state.prompts, [], state.deletedItems, {}, state.trashItems, {}, state.purgedTrashItems, {});
+        await replaceAllPrompts(nextVault.items);
+        await loadPrompts(); render();
+        showToast(skipped ? "새 항목은 없고 삭제/휴지통 기록을 반영했습니다." : "불러올 항목이 없습니다.");
+        scheduleGithubAutoSave();
+        return;
+      }
+      const nextVault = mergeVaultData([...state.prompts, ...imported], [], state.deletedItems, {}, state.trashItems, {}, state.purgedTrashItems, {});
+      await replaceAllPrompts(nextVault.items);
+      await loadPrompts(); render();
       showToast(`${formatNumber(imported.length)}개를 불러왔습니다.`); scheduleGithubAutoSave();
     } catch (error) {
       console.error(error); showToast("JSON 파일을 읽지 못했습니다.");
